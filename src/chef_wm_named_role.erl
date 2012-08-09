@@ -22,6 +22,7 @@
 -behaviour(chef_wm).
 -export([auth_info/2,
          init/1,
+         init_resource_state/1,
          malformed_request_message/3,
          request_type/0,
          validate_request/3]).
@@ -37,16 +38,18 @@
 init(Config) ->
     chef_wm_base:init(?MODULE, Config).
 
+init_resource_state(_Config) ->
+    {ok, #role_state{}}.
+
 request_type() ->
     "roles".
 
 allowed_methods(Req, State) ->
     {['GET', 'PUT', 'DELETE'], Req, State}.
 
-validate_request('GET', Req, State) ->
-    {Req, State#base_state{resource_state = #role_state{}}};
-validate_request('DELETE', Req, State) ->
-    {Req, State#base_state{resource_state = #role_state{}}};
+validate_request(Method, Req, State) when Method == 'GET' orelse
+                                          Method == 'DELETE' ->
+    {Req, State};
 validate_request('PUT', Req, State) ->
     Name = chef_wm_util:object_name(role, Req),
     Body = wrq:req_body(Req),
