@@ -61,9 +61,9 @@ auth_info(Req, State) ->
     auth_info(wrq:method(Req), Req, State).
 
 auth_info('POST', Req, State) ->
-    {{create_in_container, environment}, Req, State};
+    {{create_in_container, role}, Req, State};
 auth_info('GET', Req, State) ->
-    {{container, environment}, Req, State}.
+    {{container, role}, Req, State}.
 
 resource_exists(Req, State) ->
     {true, Req, State}.
