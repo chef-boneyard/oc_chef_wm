@@ -48,6 +48,7 @@ init([]) ->
     validate_bulk_fetch_batch_size(),
     ok = load_ibrowse_config(),
     ok = enable_org_cache(),
+    ok = enable_clients_cache(),
     {ok, Ip} = application:get_env(oc_chef_wm, ip),
     {ok, Port} = application:get_env(oc_chef_wm, port),
     {ok, Dispatch} = file:consult(filename:join(
@@ -97,6 +98,18 @@ enable_org_cache() ->
             error_logger:info_msg("Org guid cache enabled~n")
     end,
     ok.
+
+enable_clients_cache() ->
+    %% FIXME: should this config live at the oc_chef_wm level?
+    case application:get_env(chef_db, client_cache) of
+        {ok, Config} when is_list(Config) ->
+            chef_cache:init(Config),
+            error_logger:info_msg("Clients cache enabled~n");
+        _ ->
+            error_logger:info_msg("Clients cache enabled~n")
+    end,
+    ok.
+
 
 validate_bulk_fetch_batch_size() ->
     %% Batch size for bulk_fetch is currently tightly coupled to hard-coded prepared SQL
