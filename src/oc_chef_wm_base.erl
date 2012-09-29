@@ -354,6 +354,14 @@ set_authz_id(Id, #data_state{}=D) ->
                            State :: #base_state{}) ->
                                   ok | {error, Msg :: binary()}.
 check_cookbook_authz(Cookbooks, Req, State) ->
+    case application:get_env(oc_chef_wm, authz_skip_depsolver) of
+        {ok, true} ->
+            ok;
+        _Else -> %% use standard behaviour
+            actual_check_cookbook_authz(Cookbooks, Req, State)
+    end.
+
+actual_check_cookbook_authz(Cookbooks, Req, State) ->
     AllOk = lists:duplicate(length(Cookbooks), ok),
     try
         AllOk = ec_plists:map(fun(#chef_cookbook_version{name = Name,
