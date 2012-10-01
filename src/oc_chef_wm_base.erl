@@ -354,8 +354,8 @@ set_authz_id(Id, #data_state{}=D) ->
                            State :: #base_state{}) ->
                                   ok | {error, Msg :: binary()}.
 check_cookbook_authz(Cookbooks, Req, State) ->
-    case application:get_env(oc_chef_wm, authz_skip_depsolver) of
-        {ok, true} ->
+    case application:get_env(oc_chef_wm, custom_acls_depsolver) of
+        {ok, false} ->
             ok;
         _Else -> %% use standard behaviour
             actual_check_cookbook_authz(Cookbooks, Req, State)
