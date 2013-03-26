@@ -268,7 +268,7 @@ set_req_contexts(Req, #base_state{reqid_header_name = HeaderName} = State) ->
     ReqId = read_req_id(HeaderName, Req),
     Darklaunch = xdarklaunch_req:parse_header(Req),
     AuthzContext = oc_chef_authz:make_context(ReqId),
-    DbContext = chef_db:make_context(ReqId, Darklaunch),
+    DbContext = chef_db:make_context_dl(ReqId, Darklaunch),
     State#base_state{chef_authz_context = AuthzContext,
                      chef_db_context = DbContext,
                      darklaunch = Darklaunch,
