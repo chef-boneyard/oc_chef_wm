@@ -17,6 +17,7 @@
 -define(MAX_SIZE, 1000000).
 
 -include_lib("chef_wm/include/chef_wm.hrl").
+-include_lib("oc_smartgroups/include/oc_smartgroups.hrl").
 
 %% @doc Determines if service is available.
 %%
@@ -309,4 +310,6 @@ set_authz_id(Id, #role_state{}=R) ->
 set_authz_id(Id, #sandbox_state{}=S) ->
     S#sandbox_state{sandbox_authz_id = Id};
 set_authz_id(Id, #data_state{}=D) ->
-    D#data_state{data_bag_authz_id = Id}.
+    D#data_state{data_bag_authz_id = Id};
+set_authz_id(Id, #oc_smartgroup_state{}=Sg) ->
+    Sg#oc_smartgroup_state{smartgroup_authz_id = Id}.
