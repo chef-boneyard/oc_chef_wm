@@ -133,12 +133,14 @@ assemble_principal_ejson(#principal_state{name = Name,
 
 %% These are modules that we instrument with stats_hero and aggregate into common prefix via
 %% stats_hero_label.
--type metric_module() :: oc_chef_authz | chef_s3 | chef_sql | chef_solr | chef_otto.
+-type metric_module() :: oc_chef_authz | chef_s3 | chef_sql | chef_solr | chef_otto | chef_sql_core.
 
 %% @doc Given a `{Mod, Fun}' tuple, generate a stats hero metric with a prefix appropriate
 %% for stats_hero aggregation. An error is thrown if `Mod' is unknown. This is where we
 %% encode the mapping of module to upstream label.
 -spec stats_hero_label({Mod::metric_module(), Fun::atom()}) -> <<_:16,_:_*8>>.
+stats_hero_label({chef_sql_core, Fun}) ->
+    chef_metrics:label(rdbms, {chef_sql_core, Fun});
 stats_hero_label({chef_sql, Fun}) ->
     chef_metrics:label(rdbms, {chef_sql, Fun});
 stats_hero_label({oc_chef_authz, Fun}) ->
