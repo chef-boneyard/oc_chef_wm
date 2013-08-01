@@ -17,6 +17,7 @@
                   chef_index,
                   depsolver,
                   mochiweb,
+                  folsom,
                   webmachine,
                   oc_chef_authz,
                   chef_objects
