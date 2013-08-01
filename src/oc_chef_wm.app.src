@@ -15,11 +15,10 @@
                   couchbeam,
                   darklaunch,
                   chef_index,
-                  depsolver,
                   mochiweb,
-                  folsom,
                   webmachine,
                   oc_chef_authz,
+                  folsom,
                   chef_objects
                  ]},
   {mod, {oc_chef_wm_app, []}},
