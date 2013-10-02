@@ -6,7 +6,6 @@
 -module(oc_chef_authz).
 
 -include("oc_chef_authz/include/oc_chef_authz.hrl").
--include("oc_chef_authz/include/oc_chef_authz_db.hrl").
 
 -export([
          create_entity_if_authorized/4,
@@ -25,4 +24,4 @@ is_authorized_on_resource(_ReqestorId, _ResourceType, _ResourceId, _ActorType, _
     true.
 
 make_context(_ReqId, _Darklaunch) ->
-    #oc_chef_authz_context{}.
+    {mock, tuple}.
