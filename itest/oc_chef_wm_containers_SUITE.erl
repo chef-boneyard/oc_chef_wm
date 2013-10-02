@@ -58,7 +58,7 @@ create_container(_) ->
             {"content-type", "application/json"}
            ],
                      post,
-                             ejson:encode({[{"container", "foo"}]})),
+                             ejson:encode({[{<<"containername">>, <<"foo">>}]})),
     ?assertMatch({ok, "201", _, _} , Result),
     ok.
 
