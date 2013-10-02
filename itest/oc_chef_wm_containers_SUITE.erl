@@ -41,7 +41,7 @@ end_per_suite(Config) ->
     Config2.
 
 all() ->
-    [list_when_no_containers, create_container, delete_container].
+    [list_when_no_containers, create_container, delete_container, fetch_non_existant_container].
 
 list_when_no_containers(_) ->
     Result = ibrowse:send_req("http://localhost:8000/organizations/org/containers",
@@ -59,7 +59,7 @@ create_container(_) ->
            ],
                      post,
                              ejson:encode({[{"container", "foo"}]})),
-    ?assertMatch({ok, "200", _, _} , Result),
+    ?assertMatch({ok, "201", _, _} , Result),
     ok.
 
 delete_container(_) ->
@@ -69,5 +69,13 @@ delete_container(_) ->
            ],
                      delete),
     ?assertMatch({ok, "200", _, _} , Result),
+    ok.
+    
+fetch_non_existant_container(_) ->
+    Result = ibrowse:send_req("http://localhost:8000/organizations/org/containers/bar",
+           [{"x-ops-userid", "test-client"},
+            {"accept", "application/json"}],
+                     get),
+    ?assertMatch({ok, "404", _, _} , Result),
     ok.
     
