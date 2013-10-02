@@ -17,19 +17,22 @@ start_db(Config) ->
     DataDir = ?config(data_dir, Config),
 
     DbName = "oc_chef_wm_itests",
-    DbDataDir = filename:join([PrivDir, "data"]),
-    DbLogDir = filename:join([PrivDir, "db.log"]),
+    DbDataDir = filename:join([PrivDir, "db_data"]),
+    DbLog = filename:join([PrivDir, "db.log"]),
     ECSchema = filename:join([DataDir, "deps", "enterprise-chef-server-schema"]),
     OSCSchema = filename:join([ECSchema, "deps", "chef-server-schema"]),
-    DbPort = 5432,
+    DbPort = random_bogus_port(),
+    PortString = integer_to_list(DbPort),
 
     CMDS = [
             ["initdb -D", DbDataDir],
-            ["pg_ctl -D", DbDataDir, "-l", DbLogDir, "start"],
+            ["pg_ctl -D", DbDataDir, "-l", DbLog, "-o \"-p", PortString, "\" start"],
             ["sleep 1"],
-            ["createdb", DbName],
-            ["cd", OSCSchema, "&& sqitch --engine pg --db-name", DbName, "deploy"],
-            ["cd", ECSchema, "&& sqitch --engine pg --db-name", DbName, "deploy"]
+            ["createdb -p", PortString, DbName],
+            ["cd", OSCSchema, "&& sqitch --engine pg --db-name", DbName,
+             "--db-port", PortString, "deploy"],
+            ["cd", ECSchema, "&& sqitch --engine pg --db-name", DbName,
+             "--db-port", PortString, "deploy"]
            ],
 
     error_logger:info_msg("db_start:~n~s~n", [run_cmds(CMDS)]),
@@ -48,8 +51,21 @@ stop_db(Config) ->
     error_logger:info_msg("db_stop:~n~s~n", [run_cmds(CMDS)]),
     ok.
 
-
+%%
 %% helper funs
+%%
+
+%% @doc If lucky, return an unused port. This is a cheat that opens a
+%% UDP port letting the OS pick the port, captures that port, and then
+%% closes the socket returning the port number. While not reliable,
+%% this seems to work to obtain an "unused" port for setting up
+%% services needed for testing.
+random_bogus_port() ->
+    {ok, S} = gen_udp:open(0, [binary, {active, once}]),
+    {ok, Port} = inet:port(S),
+    gen_udp:close(S),
+    Port.
+
 run_cmds(CMDS) ->
     [ begin
           CC = space_join(C),
