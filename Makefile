@@ -1,4 +1,6 @@
 DEPS = $(CURDIR)/deps
+# TODO: move itest deps into a common data dir (need to configure common test)
+ITEST_DEPS = $(CURDIR)/itest/oc_chef_wm_containers_SUITE_data/deps
 DIALYZER_DEPS = deps/chef_authn/ebin \
                 deps/oc_chef_authz/ebin \
                 deps/chef_db/ebin \
@@ -21,6 +23,7 @@ DIALYZER_DEPS = deps/chef_authn/ebin \
 # ec_gb_trees.erl:72: Polymorphic opaque types not supported yet
 # :'(
 DEPS_PLT = chef_wm.plt
+EC_SCHEMA_VERSION = 2.2.0
 
 all: compile eunit dialyzer
 
@@ -49,3 +52,16 @@ $(DEPS_PLT):
 	@dialyzer --build_plt $(DIALYZER_DEPS) --output_plt $(DEPS_PLT)
 
 .PHONY: check_calls
+
+$(ITEST_DEPS):
+	mkdir -p $(ITEST_DEPS)
+
+$(ITEST_DEPS)/enterprise-chef-server-schema: $(ITEST_DEPS)
+	cd $(ITEST_DEPS); git clone git@github.com:opscode/enterprise-chef-server-schema.git; cd enterprise-chef-server-schema; git checkout $(EC_SCHEMA_VERSION); make install
+
+itest_deps: $(ITEST_DEPS)/enterprise-chef-server-schema
+
+itest: test itest_deps
+	@mkdir -p itest/ct_logs
+	@erlc -pa 'deps/*/ebin' -pa ebin -I 'deps' -o itest/mocks/ itest/mocks/*.erl
+	@ct_run -dir itest -logdir itest/ct_logs -pa  ./ebin ./deps/*/ebin itest/mocks/

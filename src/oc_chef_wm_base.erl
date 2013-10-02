@@ -34,6 +34,7 @@
 -define(MAX_SIZE, 1000000).
 
 -include_lib("chef_wm/include/chef_wm.hrl").
+-include_lib("oc_chef_wm/include/oc_chef_wm.hrl").
 
 %% @doc Determines if service is available.
 %%
@@ -390,7 +391,10 @@ set_authz_id(Id, #role_state{}=R) ->
 set_authz_id(Id, #sandbox_state{}=S) ->
     S#sandbox_state{sandbox_authz_id = Id};
 set_authz_id(Id, #data_state{}=D) ->
-    D#data_state{data_bag_authz_id = Id}.
+    D#data_state{data_bag_authz_id = Id};
+set_authz_id(Id, #container_state{} = C) ->
+    C#container_state{container_authz_id = Id}.
+
 
 %%------------------------------------------------------------------------------
 %% GRAB BAG FUNCTIONS AHEAD!!
