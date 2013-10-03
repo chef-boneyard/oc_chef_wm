@@ -94,7 +94,7 @@ delete_resource(Req, #base_state{chef_db_context = DbContext,
                                 } = State) ->
     ok = oc_chef_wm_base:delete_object(DbContext, Container, RequestorId),
     Ejson = oc_chef_container:assemble_container_ejson(Container),
-    {true, wrq:set_resp_body(Ejson, Req), State}.
+    {true, chef_wm_util:set_json_body(Req, Ejson), State}.
 
 malformed_request_message(Any, _Req, _state) ->
     error({unexpected_malformed_request_message, Any}).
