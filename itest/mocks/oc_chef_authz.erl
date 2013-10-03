@@ -16,7 +16,9 @@
         ]).
 
 create_entity_if_authorized(_Context, _OrgId, _Creator, _ObjectType) ->
-    {ok, <<"00000000000000000000000000000000">>}.
+    <<RandomInt:128>> = crypto:rand_bytes(16),
+    RandomId = iolist_to_binary(io_lib:format("~32.16.0b", [RandomInt])),
+    {ok, RandomId}.
 
 delete_resource(_RequestorId, _ResourceType, _Id) ->
     ok.
