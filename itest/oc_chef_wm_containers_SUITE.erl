@@ -7,6 +7,7 @@
 
 -include_lib("common_test/include/ct.hrl").
 -include_lib("chef_objects/include/chef_types.hrl").
+-include_lib("oc_chef_authz/include/oc_chef_types.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -record(context, {reqid :: binary(),
@@ -43,6 +44,20 @@ end_per_suite(Config) ->
 all() ->
     [list_when_no_containers, create_container, delete_container, fetch_non_existant_container].
 
+init_per_testcase(_, Config) ->
+    delete_all_containers(),
+    Config.
+
+delete_all_containers() ->
+    Result = case sqerl:adhoc_delete("containers", all) of
+        {ok, Count} ->
+            Count;
+        Error ->
+            throw(Error)
+    end,
+    error_logger:info_msg("Delete containers: ~p", [Result]),
+    ok.
+
 list_when_no_containers(_) ->
     Result = ibrowse:send_req("http://localhost:8000/organizations/org/containers",
            [{"x-ops-userid", "test-client"},
@@ -52,31 +67,37 @@ list_when_no_containers(_) ->
     ok.
 
 create_container(_) ->
-    Result = ibrowse:send_req("http://localhost:8000/organizations/org/containers",
-           [{"x-ops-userid", "test-client"},
-            {"accept", "application/json"},
-            {"content-type", "application/json"}
-           ],
-                     post,
-                             ejson:encode({[{<<"containername">>, <<"foo">>}]})),
+    Result = http_create_container("foo"),
     ?assertMatch({ok, "201", _, _} , Result),
     ok.
 
 delete_container(_) ->
-        Result = ibrowse:send_req("http://localhost:8000/organizations/org/containers/foo",
-           [{"x-ops-userid", "test-client"},
-            {"accept", "application/json"}
-           ],
-                     delete),
+    http_create_container("foo"),
+    Result = http_delete_container("foo"),
     ?assertMatch({ok, "200", _, _} , Result),
     ok.
     
 fetch_non_existant_container(_) ->
-    Result = {ok, _, _, ResponseBody} = ibrowse:send_req("http://localhost:8000/organizations/org/containers/bar",
-           [{"x-ops-userid", "test-client"},
-            {"accept", "application/json"}],
-                     get),
+    Result = {ok, _, _, ResponseBody} = http_fetch_container("bar"),
     ?assertMatch({ok, "404", _, ResponseBody} , Result),
     ?assertEqual([<<"Cannot load container bar">>], ej:get({"error"}, ejson:decode(ResponseBody))),
     ok.
-    
+
+http_fetch_container(Name) ->
+     ibrowse:send_req("http://localhost:8000/organizations/org/containers/" ++ Name,
+           [{"x-ops-userid", "test-client"},
+            {"accept", "application/json"}],
+                     get).
+
+http_create_container(Name) ->
+    ibrowse:send_req("http://localhost:8000/organizations/org/containers",
+           [{"x-ops-userid", "test-client"},
+            {"accept", "application/json"},
+            {"content-type", "application/json"}
+           ],post,ejson:encode({[{<<"containername">>, list_to_binary(Name)}]})).
+
+http_delete_container(Name) ->
+     ibrowse:send_req("http://localhost:8000/organizations/org/containers/" ++ Name,
+           [{"x-ops-userid", "test-client"},
+            {"accept", "application/json"}
+           ], delete).
