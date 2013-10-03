@@ -72,10 +72,11 @@ delete_container(_) ->
     ok.
     
 fetch_non_existant_container(_) ->
-    Result = ibrowse:send_req("http://localhost:8000/organizations/org/containers/bar",
+    Result = {ok, _, _, ResponseBody} = ibrowse:send_req("http://localhost:8000/organizations/org/containers/bar",
            [{"x-ops-userid", "test-client"},
             {"accept", "application/json"}],
                      get),
-    ?assertMatch({ok, "404", _, _} , Result),
+    ?assertMatch({ok, "404", _, ResponseBody} , Result),
+    ?assertEqual([<<"container 'bar' not found">>], ej:get({"error"}, ejson:decode(ResponseBody))),
     ok.
     
