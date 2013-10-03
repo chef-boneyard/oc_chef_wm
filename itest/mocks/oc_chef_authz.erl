@@ -9,6 +9,7 @@
 
 -export([
          create_entity_if_authorized/4,
+         delete_resource/3,
          get_container_aid_for_object/3,
          is_authorized_on_resource/6,
          make_context/2
@@ -16,6 +17,9 @@
 
 create_entity_if_authorized(_Context, _OrgId, _Creator, _ObjectType) ->
     {ok, <<"00000000000000000000000000000000">>}.
+
+delete_resource(_RequestorId, _ResourceType, _Id) ->
+    ok.
 
 get_container_aid_for_object(_Context, _OrgId, _ObjectType) ->
     <<"00000000000000000000000000000000">>.
