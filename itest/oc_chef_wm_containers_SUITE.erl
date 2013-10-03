@@ -77,6 +77,6 @@ fetch_non_existant_container(_) ->
             {"accept", "application/json"}],
                      get),
     ?assertMatch({ok, "404", _, ResponseBody} , Result),
-    ?assertEqual([<<"container 'bar' not found">>], ej:get({"error"}, ejson:decode(ResponseBody))),
+    ?assertEqual([<<"Cannot load container bar">>], ej:get({"error"}, ejson:decode(ResponseBody))),
     ok.
     
