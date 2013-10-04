@@ -111,7 +111,7 @@ update_container(_) ->
     UpdateJson = {[{<<"containername">>, <<"bar">>},
                    {<<"containerpath">>, <<"foo">>},
                    {<<"extra-data">>, <<"ignored">>}]},
-    http_update_container("foo", UpdateJson),
+    ?assertMatch({ok, "200", _, _}, http_update_container("foo", UpdateJson)),
 
     FetchOld = http_fetch_container("foo"),
     ?assertMatch({ok, "404", _, _}, FetchOld),
