@@ -42,7 +42,14 @@ end_per_suite(Config) ->
     Config2.
 
 all() ->
-    [list_when_no_containers, create_container, delete_container, fetch_non_existant_container].
+    [
+     list_when_no_containers,
+     list_when_created_containers,
+     create_container,
+     delete_container,
+     fetch_non_existant_container,
+     fetch_existant_container
+    ].
 
 init_per_testcase(_, Config) ->
     delete_all_containers(),
@@ -59,12 +66,19 @@ delete_all_containers() ->
     ok.
 
 list_when_no_containers(_) ->
-    Result = ibrowse:send_req("http://localhost:8000/organizations/org/containers",
-           [{"x-ops-userid", "test-client"},
-            {"accept", "application/json"}],
-                     get),
+    Result = http_list_containers(),
     ?assertMatch({ok, "200", _, _} , Result),
     ok.
+
+list_when_created_containers(_) ->
+    Containers = ["foo", "bar"],
+    [ http_create_container(Container) || Container <- Containers ],
+    {ok, ResponseCode, _, ResponseBody} = http_list_containers(),
+    ?assertEqual("200", ResponseCode),
+    Ejson = ejson:decode(ResponseBody),
+    {ContainerList} = Ejson,
+    [ ?assertEqual(true, proplists:is_defined(list_to_binary(Container), ContainerList))
+      || Container <- Containers ].
 
 create_container(_) ->
     Result = http_create_container("foo"),
@@ -76,15 +90,29 @@ delete_container(_) ->
     Result = http_delete_container("foo"),
     ?assertMatch({ok, "200", _, _} , Result),
     ok.
-    
+
 fetch_non_existant_container(_) ->
     Result = {ok, _, _, ResponseBody} = http_fetch_container("bar"),
     ?assertMatch({ok, "404", _, ResponseBody} , Result),
     ?assertEqual([<<"Cannot load container bar">>], ej:get({"error"}, ejson:decode(ResponseBody))),
     ok.
 
+fetch_existant_container(_) ->
+    http_create_container("foo"),
+    {ok, ResponseCode, _, ResponseBody} = http_fetch_container("foo"),
+    ?assertMatch("200", ResponseCode),
+    Ejson = ejson:decode(ResponseBody),
+    ?assertEqual(<<"foo">>, ej:get({"containername"}, Ejson)),
+    ?assertEqual(<<"foo">>, ej:get({"containerpath"}, Ejson)).
+
+http_list_containers() ->
+    ibrowse:send_req("http://localhost:8000/organizations/org/containers",
+           [{"x-ops-userid", "test-client"},
+            {"accept", "application/json"}],
+                     get).
+
 http_fetch_container(Name) ->
-     ibrowse:send_req("http://localhost:8000/organizations/org/containers/" ++ Name,
+    ibrowse:send_req("http://localhost:8000/organizations/org/containers/" ++ Name,
            [{"x-ops-userid", "test-client"},
             {"accept", "application/json"}],
                      get).
