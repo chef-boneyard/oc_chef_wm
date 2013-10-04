@@ -78,7 +78,8 @@ to_json(Req, #base_state{resource_state = #container_state{
                                              oc_chef_container = Container
                                             }} = State) ->
     Ejson = oc_chef_container:assemble_container_ejson(Container),
-    {Ejson, Req, State}.
+    Json = chef_json:encode(Ejson),
+    {Json, Req, State}.
 
 from_json(Req, #base_state{resource_state = #container_state{
                                                oc_chef_container = Container,
