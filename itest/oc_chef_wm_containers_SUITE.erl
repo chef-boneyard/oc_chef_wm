@@ -48,7 +48,8 @@ all() ->
      create_container,
      delete_container,
      fetch_non_existant_container,
-     fetch_existant_container
+     fetch_existant_container,
+     update_container
     ].
 
 init_per_testcase(_, Config) ->
@@ -105,27 +106,52 @@ fetch_existant_container(_) ->
     ?assertEqual(<<"foo">>, ej:get({"containername"}, Ejson)),
     ?assertEqual(<<"foo">>, ej:get({"containerpath"}, Ejson)).
 
+update_container(_) ->
+    http_create_container("foo"),
+    UpdateJson = {[{<<"containername">>, <<"bar">>},
+                   {<<"containerpath">>, <<"foo">>},
+                   {<<"extra-data">>, <<"ignored">>}]},
+    http_update_container("foo", UpdateJson),
+
+    FetchOld = http_fetch_container("foo"),
+    ?assertMatch({ok, "404", _, _}, FetchOld),
+
+    {ok, ResponseCode, _, ResponseBody} = http_fetch_container("bar"),
+    ?assertEqual("200", ResponseCode),
+
+    Ejson = ejson:decode(ResponseBody),
+    ?assertEqual(<<"bar">>, ej:get({"containername"}, Ejson)),
+    ?assertEqual(<<"bar">>, ej:get({"containerpath"}, Ejson)),
+    ?assertEqual(undefined, ej:get({"extra-data"}, Ejson)).
+
 http_list_containers() ->
     ibrowse:send_req("http://localhost:8000/organizations/org/containers",
-           [{"x-ops-userid", "test-client"},
-            {"accept", "application/json"}],
+                     [{"x-ops-userid", "test-client"},
+                      {"accept", "application/json"}],
                      get).
 
 http_fetch_container(Name) ->
     ibrowse:send_req("http://localhost:8000/organizations/org/containers/" ++ Name,
-           [{"x-ops-userid", "test-client"},
-            {"accept", "application/json"}],
+                     [{"x-ops-userid", "test-client"},
+                      {"accept", "application/json"}],
                      get).
 
 http_create_container(Name) ->
     ibrowse:send_req("http://localhost:8000/organizations/org/containers",
-           [{"x-ops-userid", "test-client"},
-            {"accept", "application/json"},
-            {"content-type", "application/json"}
-           ],post,ejson:encode({[{<<"containername">>, list_to_binary(Name)}]})).
+                     [{"x-ops-userid", "test-client"},
+                      {"accept", "application/json"},
+                      {"content-type", "application/json"}
+                     ],post, ejson:encode({[{<<"containername">>, list_to_binary(Name)}]})).
 
 http_delete_container(Name) ->
-     ibrowse:send_req("http://localhost:8000/organizations/org/containers/" ++ Name,
-           [{"x-ops-userid", "test-client"},
-            {"accept", "application/json"}
-           ], delete).
+    ibrowse:send_req("http://localhost:8000/organizations/org/containers/" ++ Name,
+                     [{"x-ops-userid", "test-client"},
+                      {"accept", "application/json"}
+                     ], delete).
+
+http_update_container(Name, Ejson) ->
+    ibrowse:send_req("http://localhost:8000/organizations/org/containers/" ++ Name,
+                     [{"x-ops-userid", "test-client"},
+                      {"accept", "application/json"},
+                      {"content-type", "application/json"}
+                     ], put, ejson:encode(Ejson)).
