@@ -62,6 +62,5 @@ $(ITEST_DEPS)/enterprise-chef-server-schema: $(ITEST_DEPS)
 itest_deps: $(ITEST_DEPS)/enterprise-chef-server-schema
 
 itest: test itest_deps
-	@mkdir -p itest/ct_logs
 	@erlc -pa 'deps/*/ebin' -pa ebin -I 'deps' -o itest/mocks/ itest/mocks/*.erl
-	@ct_run -dir itest -logdir itest/ct_logs -pa  ./ebin ./deps/*/ebin itest/mocks/
+	@rebar skip_deps=true ct
