@@ -1,7 +1,6 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
-%% @author Stephen Delano <stephen@opscode.com>
-%% Copyright 2013 Opscode, Inc. All Rights Reserved.
+%% Copyright 2013-2014 Opscode, Inc. All Rights Reserved.
 
 -module(oc_chef_wm_key_pair).
 
@@ -28,7 +27,8 @@
          validate_request/3,
 
          allowed_methods/2,
-         process_post/2
+         process_post/2,
+         to_json/2
         ]).
 
 init(Config) ->
@@ -41,9 +41,9 @@ request_type() ->
     "key_pair".
 
 allowed_methods(Req, State) ->
-    {['POST'], Req, State}.
+    {['GET', 'POST'], Req, State}.
 
-validate_request('POST', Req, State) ->
+validate_request(_, Req, State) ->
     {Req, State}.
 
 auth_info(Req, State) ->
@@ -61,3 +61,12 @@ process_post(Req, State) ->
         keygen_timeout ->
             {{halt, 503}, Req, State}
     end.
+
+to_json(Req, State) ->
+    RawStatus = chef_keygen_cache:status(),
+    Status = {[ {to_bin(K), V} || {K, V} <- RawStatus ]},
+    JSON = chef_json:encode(Status),
+    {JSON, Req, State}.
+
+to_bin(K) when is_atom(K) ->
+    erlang:atom_to_binary(K, utf8).
