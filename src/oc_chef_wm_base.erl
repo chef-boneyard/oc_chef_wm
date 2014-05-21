@@ -45,7 +45,12 @@
 service_available(Req, State) ->
     %% TODO: query overload here and send 503 also can consult
     %% config/darklaunch to determine if we are in maint mode.
-    OrgName = list_to_binary(wrq:path_info(organization_id, Req)),
+    OrgName = case wrq:path_info(organization_id, Req) of
+                  undefined ->
+                      <<":NO_ORG:">>;
+                  OrgStr ->
+                      list_to_binary(OrgStr)
+              end,
     State0 = set_req_contexts(Req, State),
     State1 = State0#base_state{organization_name = OrgName},
     spawn_stats_hero_worker(Req, State1),
