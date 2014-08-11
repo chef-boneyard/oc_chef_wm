@@ -21,7 +21,7 @@
                               org_admin_ace_removal_failed.
 -type deprovision_error_tuple() :: {error, { deprovision_error(),term()}}.
 -type deprovision_warning_msg() ::  { deprovision_warning(), term() }.
--type deprovision_warning_tuple() :: {warning, [ deprovision_warning_msg() ] }.
+-type deprovision_warning_tuple() :: {warning, [ deprovision_warning_msg(), ... ] }.
 -type deprovision_response() ::  ok | deprovision_warning_tuple() | deprovision_error_tuple().
 
 -type provision_error() :: usag_authz_creation_failed | usag_creation_failed |
@@ -29,7 +29,7 @@
 -type provision_warning() :: fetch_org_admins_failed | add_read_ace_for_admins_failed.
 -type provision_error_tuple() :: {error, { provision_error(), term()}}.
 -type provision_warning_msg() :: { provision_warning(), term() }.
--type provision_warning_tuple() :: { warning, [ provision_warning_msg() ] }.
+-type provision_warning_tuple() :: { warning, [ provision_warning_msg(), ... ] }.
 -type provision_response() :: ok | provision_warning_tuple() | provision_error_tuple().
 
 % Internal use
@@ -131,7 +131,6 @@ deprovision_removed_user_done(Error, #context{msg = Msg} = Context) ->
 -spec provision_associated_user(#base_state{}, #chef_user{}, binary()) -> provision_response().
 provision_associated_user(State, #chef_user{id = UserId} = User, RequestorAuthzId) ->
     Context = association_context(State, User, RequestorAuthzId),
-    % TODO user superuser for requestorauthzid , per latest oc-account updates
     OrgId = Context#context.org_id,
     USAG0 = oc_chef_group:create_record(OrgId, UserId, RequestorAuthzId),
     Result = oc_chef_authz:create_entity_if_authorized(Context#context.org_id,
@@ -146,8 +145,6 @@ provision_process_usag_authzid({ok, AuthzId}, #context{usag = USAG,
     Result = chef_db:create(USAG0, DbContext, RequestorAuthzId),
     provision_process_usag(Result, Context#context{usag = USAG0});
 provision_process_usag_authzid(Error, _Context) ->
-    % TODO: After we begin performing this action as superuser,
-    % the only error path (forbidden) should not be possible
     {error, {usag_authz_creation_failed, Error}}.
 
 provision_process_usag(ok, #context{usag = USAG,
@@ -183,9 +180,9 @@ provision_fetch_org_global_admins(Error, _Context) ->
 provision_add_user_ace_to_global_admins({ok, OrgGlobalAdminsAuthzId}, #context{user_authz_id = UserAuthzId } = Context) ->
     % Spoofing to user as requestor, so that we have necessary access to update
     Result = oc_chef_authz:add_ace_for_entity(UserAuthzId,
-                                                 group, OrgGlobalAdminsAuthzId,
-                                                 object, UserAuthzId,
-                                                 read),
+                                              group, OrgGlobalAdminsAuthzId,
+                                              object, UserAuthzId,
+                                              read),
     provision_associated_user_done(Result, Context);
 provision_add_user_ace_to_global_admins(Error, _) ->
     % No need to continue - if we can't get the admin group, we can't add
