@@ -41,6 +41,7 @@
                    user_name,
                    user_id,
                    requestor_authz_id,
+                   real_requestor_authz_id,
                    org_users,
                    msg = [],
                    usag} ).
@@ -57,12 +58,16 @@
 deprovision_removed_user(State, User, RequestorAuthzId) ->
     Context = association_context(State, User, RequestorAuthzId),
     Result = chef_db:fetch(#oc_chef_group{org_id = Context#context.org_id,
-                                          name = Context#context.user_id},
+                                          name = Context#context.user_id,
+                                         for_requestor_id = RequestorAuthzId},
                            Context#context.db_context),
     deprovision_process_usag(Result, Context).
 
-deprovision_process_usag({ok, USAG}, #context{ db_context = DbContext, org_id = OrgId } = Context) ->
-    Result = chef_db:fetch(#oc_chef_group{org_id = OrgId, name = "users"}, DbContext),
+deprovision_process_usag(#oc_chef_group{} = USAG, #context{ db_context = DbContext,
+                                                            org_id = OrgId,
+                                                            requestor_authz_id = RequestorAuthzId } = Context) ->
+    Result = chef_db:fetch(#oc_chef_group{org_id = OrgId, name = "users",
+                                          for_requestor_id = RequestorAuthzId }, DbContext),
     deprovision_remove_usag_from_users(Result, Context#context{usag = USAG});
 deprovision_process_usag(Error, _Context) ->
     {error, {error_fetching_usag,Error}}.
@@ -96,13 +101,14 @@ deprovision_fetch_org_global_admins(Error, Context) ->
     deprovision_remove_global_org_admin_ace({ok, ok}, Context = #context{msg = [{usag_record_delete_failed, Error}]}).
 
 deprovision_remove_global_org_admin_ace({ok, OrgGlobalAdminsAuthzId},
-                                        #context{ user_authz_id = UserAuthzId} = Context) ->
+                                        #context{ user_authz_id = UserAuthzId,
+                                                  real_requestor_authz_id = RequestorAuthzId } = Context) ->
     %We're spoofing the requesting actor for this next operation to be the actual user
     % who is being removed.  This is because the actor will need to have update access
     % to that user's record - and the originator of this request may not.
-    Result = oc_chef_authz:remove_ace_for_entity(UserAuthzId,
+    Result = oc_chef_authz:remove_ace_for_entity(RequestorAuthzId,
                                                  group, OrgGlobalAdminsAuthzId,
-                                                 object, UserAuthzId,
+                                                 actor, UserAuthzId,
                                                  read),
     deprovision_removed_user_done(Result, Context);
 deprovision_remove_global_org_admin_ace(Error, #context{msg = Msg}) ->
@@ -133,9 +139,9 @@ provision_associated_user(State, #chef_user{id = UserId} = User, RequestorAuthzI
     Context = association_context(State, User, RequestorAuthzId),
     OrgId = Context#context.org_id,
     USAG0 = oc_chef_group:create_record(OrgId, UserId, RequestorAuthzId),
-    Result = oc_chef_authz:create_entity_if_authorized(Context#context.org_id,
+    Result = oc_chef_authz:create_entity_if_authorized(Context#context.authz_context,
                                                        OrgId,
-                                                       RequestorAuthzId, group),
+                                                       Context#context.real_requestor_authz_id, group),
     provision_process_usag_authzid(Result, Context#context{usag = USAG0}).
 
 provision_process_usag_authzid({ok, AuthzId}, #context{usag = USAG,
@@ -161,10 +167,9 @@ provision_add_usag_to_org_users(ok, #context{usag = USAG,
                                         org_id = OrgId,
                                         requestor_authz_id = RequestorAuthzId,
                                         db_context = DbContext} = Context) ->
-
-    {ok, OrgUsersGroup} = chef_db:fetch(#oc_chef_group{org_id = OrgId, name = "users"}, DbContext),
-    #oc_chef_group{ groups = Groups } = OrgUsersGroup,
-    OrgUsersGroup0 = OrgUsersGroup#oc_chef_group{groups = USAG#oc_chef_group.name ++ Groups},
+    % TODO split out this failure case: #oc_chef_group | atom()
+    OrgUsersGroup = chef_db:fetch(#oc_chef_group{org_id = OrgId, name = "users", for_requestor_id = RequestorAuthzId}, DbContext),
+    OrgUsersGroup0 = oc_chef_group:add_group_member(OrgUsersGroup, USAG#oc_chef_group.name),
     Result = chef_db:update(OrgUsersGroup0, DbContext, RequestorAuthzId),
     provision_fetch_org_global_admins(Result, Context);
 provision_add_usag_to_org_users(Error, _Context) ->
@@ -172,21 +177,25 @@ provision_add_usag_to_org_users(Error, _Context) ->
 
 provision_fetch_org_global_admins(ok, #context{org_name = OrgName,
                                         authz_context = AuthzContext } = Context) ->
-    Result = oc_chef_authz_db:fetch_global_group_authz_id(AuthzContext, OrgName, "admins"),
+    Result = oc_chef_authz_db:fetch_global_group_authz_id(AuthzContext, OrgName, "global_admins"),
     provision_add_user_ace_to_global_admins(Result, Context);
 provision_fetch_org_global_admins(Error, _Context) ->
     {error, {add_usag_to_org_users_group_failed, Error}}.
 
-provision_add_user_ace_to_global_admins({ok, OrgGlobalAdminsAuthzId}, #context{user_authz_id = UserAuthzId } = Context) ->
+provision_add_user_ace_to_global_admins(OrgGlobalAdminsAuthzId,
+                                        #context{user_authz_id = UserAuthzId,
+                                                 real_requestor_authz_id = RequestorId } = Context) when is_binary(OrgGlobalAdminsAuthzId) ->
     % Spoofing to user as requestor, so that we have necessary access to update
-    Result = oc_chef_authz:add_ace_for_entity(UserAuthzId,
+    Result = oc_chef_authz:add_ace_for_entity(RequestorId,
                                               group, OrgGlobalAdminsAuthzId,
-                                              object, UserAuthzId,
+                                              actor, UserAuthzId,
                                               read),
     provision_associated_user_done(Result, Context);
 provision_add_user_ace_to_global_admins(Error, _) ->
     % No need to continue - if we can't get the admin group, we can't add
-    % permissions.
+    % permissions. However, the USAG is part fo the group, so even
+    % though an admin cannot view this user in the context of the org,
+    % they wll have permissions within the org.
     {warning, [{fetch_org_admins_failed, Error}]}.
 
 provision_associated_user_done(ok, _Context) ->
@@ -199,7 +208,8 @@ provision_associated_user_done(Error, _Context) ->
 association_context(#base_state{ organization_name = OrgName,
                                  organization_guid = OrgId,
                                  chef_authz_context = AuthzContext,
-                                 chef_db_context = DbContext},
+                                 chef_db_context = DbContext,
+                                 requestor_id = RealRequestor},
                     #chef_user{ authz_id = UserAuthzId,
                                 username = UserName,
                                 id = UserId },
@@ -211,5 +221,6 @@ association_context(#base_state{ organization_name = OrgName,
               user_authz_id = UserAuthzId,
               user_name = UserName,
               user_id = UserId,
+              real_requestor_authz_id = RealRequestor,
               requestor_authz_id = RequestorAuthzId}.
 
