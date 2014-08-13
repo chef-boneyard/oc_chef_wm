@@ -90,7 +90,7 @@ deprovision_delete_usag(Error, _Context) ->
 
 deprovision_fetch_org_global_admins({ok, _}, #context{authz_context = AuthzContext,
                                                       org_name = OrgName} = Context) ->
-    Result = oc_chef_authz_db:fetch_global_group_authz_id(AuthzContext, OrgName, "admins"),
+    Result = oc_chef_authz_db:fetch_global_group_authz_id(AuthzContext, OrgName, "global_admins"),
     deprovision_remove_global_org_admin_ace(Result, Context) ;
 deprovision_fetch_org_global_admins(Error, Context) ->
     % TODO confirm the truth of this:
@@ -129,11 +129,11 @@ deprovision_removed_user_done(Error, #context{msg = Msg} = Context) ->
 %% Given a user who has a record within an organization,
 %% provision that user with proper permissions. These steps are broken out
 %% below as follows:
-%% -. create USAG authzd
-%% 0. save USAG record
-%% 1. update USAG to contain user
-%% 2. add USAG to org
-%% 3. set org admin read ACL on user (not usag)
+%% 0. create USAG authzid
+%% 1. create and save USAG record (in 'groups')
+%% 2. update USAG to contain user
+%% 3. add USAG to org
+%% 4. set org admin read ACL on user (not usag)
 -spec provision_associated_user(#base_state{}, #chef_user{}, binary()) -> provision_response().
 provision_associated_user(State, #chef_user{id = UserId} = User, RequestorAuthzId) ->
     Context = association_context(State, User, RequestorAuthzId),
@@ -141,26 +141,27 @@ provision_associated_user(State, #chef_user{id = UserId} = User, RequestorAuthzI
     USAG0 = oc_chef_group:create_record(OrgId, UserId, RequestorAuthzId),
     Result = oc_chef_authz:create_entity_if_authorized(Context#context.authz_context,
                                                        OrgId,
-                                                       Context#context.real_requestor_authz_id, group),
-    provision_process_usag_authzid(Result, Context#context{usag = USAG0}).
+                                                       Context#context.real_requestor_authz_id,
+                                                       group),
+    provision_create_usag(Result, Context#context{usag = USAG0}).
 
-provision_process_usag_authzid({ok, AuthzId}, #context{usag = USAG,
-                                                       requestor_authz_id = RequestorAuthzId,
-                                                       db_context = DbContext} = Context) ->
+provision_create_usag({ok, AuthzId}, #context{usag = USAG,
+                                              requestor_authz_id = RequestorAuthzId,
+                                              db_context = DbContext} = Context) ->
     USAG0 = USAG#oc_chef_group{authz_id = AuthzId},
     Result = chef_db:create(USAG0, DbContext, RequestorAuthzId),
-    provision_process_usag(Result, Context#context{usag = USAG0});
-provision_process_usag_authzid(Error, _Context) ->
+    provision_set_usag_members(Result, Context#context{usag = USAG0});
+provision_create_usag(Error, _Context) ->
     {error, {usag_authz_creation_failed, Error}}.
 
-provision_process_usag(ok, #context{usag = USAG,
+provision_set_usag_members(ok, #context{usag = USAG,
                                     user_name = UserName,
                                     requestor_authz_id = RequestorAuthzId,
                                     db_context = DbContext} = Context) ->
-    USAG0 = USAG#oc_chef_group{users = [UserName]},
+    USAG0 = oc_chef_group:add_user_member(USAG, UserName),
     Result = chef_db:update(USAG0, DbContext, RequestorAuthzId),
     provision_add_usag_to_org_users(Result, Context#context{usag = USAG0});
-provision_process_usag(Error, _Context) ->
+provision_set_usag_members(Error, _Context) ->
     {error, {usag_creation_failed, Error}}.
 
 provision_add_usag_to_org_users(ok, #context{usag = USAG,
@@ -168,7 +169,8 @@ provision_add_usag_to_org_users(ok, #context{usag = USAG,
                                         requestor_authz_id = RequestorAuthzId,
                                         db_context = DbContext} = Context) ->
     % TODO split out this failure case: #oc_chef_group | atom()
-    OrgUsersGroup = chef_db:fetch(#oc_chef_group{org_id = OrgId, name = "users", for_requestor_id = RequestorAuthzId}, DbContext),
+    OrgUsersGroup = chef_db:fetch(#oc_chef_group{org_id = OrgId, name = "users",
+                                                 for_requestor_id = RequestorAuthzId}, DbContext),
     OrgUsersGroup0 = oc_chef_group:add_group_member(OrgUsersGroup, USAG#oc_chef_group.name),
     Result = chef_db:update(OrgUsersGroup0, DbContext, RequestorAuthzId),
     provision_fetch_org_global_admins(Result, Context);
