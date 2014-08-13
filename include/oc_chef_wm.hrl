@@ -17,6 +17,13 @@
           oc_chef_group :: #oc_chef_group{}
          }).
 
+-record(association_state, {
+          data,
+          user,
+          org_user_assoc,
+          org_user_invite
+         }).
+
 %% Since CS12, we have a default-org mode. Under this mode,
 %% certain endpoints can be routed from
 %% /ENDPOINT -> /organizations/DEFAULT_ORG/ENDPOINT
