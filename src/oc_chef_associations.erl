@@ -61,15 +61,15 @@ deprovision_removed_user(State, User, RequestorAuthzId) ->
                                           name = Context#context.user_id,
                                           for_requestor_id = RequestorAuthzId},
                            Context#context.db_context),
-    deprovision_process_usag(Result, Context).
+    deprovision_fetch_users_group(Result, Context).
 
-deprovision_process_usag(#oc_chef_group{} = USAG, #context{ db_context = DbContext,
+deprovision_fetch_users_group(#oc_chef_group{} = USAG, #context{ db_context = DbContext,
                                                             org_id = OrgId,
                                                             requestor_authz_id = RequestorAuthzId } = Context) ->
     Result = chef_db:fetch(#oc_chef_group{org_id = OrgId, name = "users",
                                           for_requestor_id = RequestorAuthzId }, DbContext),
     deprovision_remove_usag_from_users(Result, Context#context{usag = USAG});
-deprovision_process_usag(Error, _Context) ->
+deprovision_fetch_users_group(Error, _Context) ->
     {error, {error_fetching_usag,Error}}.
 
 deprovision_remove_usag_from_users(#oc_chef_group{} = OrgUsersGroup,
