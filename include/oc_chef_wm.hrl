@@ -26,7 +26,7 @@
 -record(association_state, {
           data,
           user,
-          org_user_assoc,
+          org_user_association,
           org_user_invite,
           user_name
          }).
