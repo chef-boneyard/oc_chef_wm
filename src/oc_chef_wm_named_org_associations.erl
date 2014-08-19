@@ -59,8 +59,7 @@ request_type() ->
     "associations".
 
 allowed_methods(Req, State) ->
-    %Final: {['GET', 'DELETE', 'POST'], Req, State}.
-    {['GET', 'POST'], Req, State}.
+    {['GET', 'DELETE', 'POST'], Req, State}.
 
 validate_request('POST', Req, #base_state{chef_db_context = DbContext} = State) ->
     case wrq:req_body(Req) of
@@ -116,6 +115,8 @@ auth_info(Req, #base_state{resource_state = #association_state{user = User} } = 
     end.
 
 auth_type_for_user_org(#chef_user{ authz_id = UserAuthzId }, _OrgAuthzId) ->
+    % TODO this will vary a bit for DELETE. Must be self or have update ace to org (and not delete ace
+    % which will be default)
     {actor, UserAuthzId};
 auth_type_for_user_org(undefined, _OrgAuthzId) ->
     % Operations occurring at the org level require access to the
@@ -136,27 +137,41 @@ to_json(Req, #base_state{organization_guid = OrgId,
     % Because we're not using the standard form of "[a,b,c]"  in our response in order to
     % keep compatible, using chef_wm_base:list_object_json does more than we can use -
     % instead capture the result directly here.
-    Names = chef_db:list(#oc_chef_org_user_association{org_id = OrgId}, DbContext),
-    EJson = [ {[{ <<"user">>, {[{<<"username">>, Name}]} }]} || Name <- Names ],
-    {chef_json:encode(EJson), Req, State};
+    case chef_db:list(#oc_chef_org_user_association{org_id = OrgId}, DbContext) of
+        Names when is_list(Names) ->
+            EJson = [ {[{ <<"user">>, {[{<<"username">>, Name}]} }]} || Name <- Names ],
+            {chef_json:encode(EJson), Req, State};
+        Error ->
+            {{halt, 500}, Req, State#base_state{log_msg = Error }}
+    end;
 to_json(Req, #base_state{organization_name = OrgName,
-                         resource_state = #association_state{user = User} = State} ) ->
-    % Fetch user details for this user in this org. In this case, we
-    % already have everything we need, just need to jsonify it.
-    EJson = chef_user:assemble_user_ejson(User, OrgName),
-    Json = chef_json:encode(EJson),
-    {Json, Req, State};
-to_json(Req, State) ->
-    io:fwrite("STATE: ~p~n", [State]),
-    {[], Req, State}.
+                         chef_db_context = DbContext,
+                         resource_state = #association_state{user = #chef_user{username = UserName} = User}  } = State ) ->
+    % Verify that the user is actually in the org, then send the results back.
+    case chef_db:is_user_in_org(DbContext, UserName, OrgName) of
+        true ->
+            EJson = chef_user:assemble_user_ejson(User, OrgName),
+            Json = chef_json:encode(EJson),
+            {Json, Req, State};
+        false ->
+            Message = chef_wm_util:not_found_message(association, UserName),
+            Req1 = chef_wm_util:set_json_body(Req, Message),
+            {{halt, 404}, Req1, State#base_state{log_msg = user_not_found}}
+    end.
+
 
 from_json(Req, #base_state{organization_guid = OrgId,
+                           organization_name = OrgName,
                            chef_db_context = DbContext,
-                           resource_state = #association_state{ user = #chef_user{id = UserId} = User,
+                           resource_state = #association_state{ user = #chef_user{id = UserId,
+                                                                                  username = UserName} = User,
                                                                 data = ReqData}} = State) ->
     ObjectRec = chef_object:new_record(oc_chef_org_user_association, OrgId, {authz_id, UserId}, ReqData),
     Name = chef_object:name(ObjectRec),
     TypeName = chef_object:type_name(ObjectRec),
+
+    % TODO Do we still need to spoof superuser here, now that delete side is cleaned up
+    % to use superuser at time of deletion?
     RequestorId = oc_chef_authz:superuser_id(),
     case chef_db:create(ObjectRec, DbContext, RequestorId) of
         {conflict, _} ->
@@ -169,29 +184,63 @@ from_json(Req, #base_state{organization_guid = OrgId,
             Uri = ?BASE_ROUTES:route(TypeName, Req, [{name, Name}]),
             case oc_chef_associations:provision_associated_user(State, User, RequestorId) of
                 {error, {Step, Detail}} ->
-                    % TODO cleanup of created record!
-                    {{halt, 500, Req, State#base_state{log_msg = {Step, Detail}}}};
+                    % Delete the record if we can, but don't confuse the issue by reporting
+                    % a failure to delete as the primary problem.
+                    oc_chef_object_db:safe_delete(DbContext,
+                                                  #oc_chef_org_user_association{org_id = OrgId, user_id = UserId},
+                                                  RequestorId),
+
+                    {{halt, 500}, Req, State#base_state{log_msg = {Step, Detail}}};
                 {warning, Warnings} ->
                     LogMsg = [{created, Name}, {warnings, Warnings}],
                     {true,
                      chef_wm_util:set_uri_of_created_resource(Uri, Req),
                      State#base_state{log_msg = LogMsg}};
                 ok ->
-                    LogMsg = {created, Name},
+                    LogMsg = {added, UserName, to, OrgName},
                     Uri = ?BASE_ROUTES:route(TypeName, Req, [{name, Name}]),
                     {true,
                      chef_wm_util:set_uri_of_created_resource(Uri, Req),
                      State#base_state{log_msg = LogMsg}}
             end;
         What ->
-            io:fwrite("FAILED: ~p~n", erlang:get_stacktrace()),
             {{halt, 500}, Req, State#base_state{log_msg = What}}
     end.
 
 
-delete_resource(_Req, _State) ->
-    % Deleting the association:
-    erlang:error(not_implemented).
+delete_resource(Req, #base_state{organization_guid = OrgId,
+                                 chef_db_context = DbContext,
+                                 requestor_id = RequestorId,
+                                 resource_state = #association_state{user = #chef_user{id = UserId }}} = State ) ->
+
+            % Note that we can avoid an explicit membership check for the user to be deleted,
+            % because safe_delete will return not_found if nothing is deleted.
+            case oc_chef_object_db:safe_delete(DbContext,
+                                               #oc_chef_org_user_association{org_id = OrgId, user_id = UserId},
+                                               RequestorId) of
+                ok ->
+                    remove_user(Req, State);
+                not_found ->
+                    {{halt, 404}, Req, State#base_state{log_msg = association_not_found}};
+                {error, What} ->
+                    {{halt, 500}, Req, State#base_state{log_msg = What}}
+            end.
+
+remove_user(Req, #base_state{organization_name = OrgName,
+                                resource_state = #association_state{ user = #chef_user{username = UserName} = User}  } = State ) ->
+    RequestorId = oc_chef_authz:superuser_id(),
+    case oc_chef_associations:deprovision_removed_user(State, User, RequestorId) of
+        ok ->
+            EJ = chef_user:assemble_user_ejson(User, OrgName),
+            {true, chef_wm_util:set_json_body(Req, EJ), State#base_state{log_msg = {removed, UserName, from, OrgName}}};
+        {warning, Warnings} ->
+            lager:error("Warnings in deprovision of ~p from ~p: ~p", [UserName, OrgName, Warnings]),
+            EJ = chef_user:assemble_user_ejson(User, OrgName),
+            {true, chef_wm_util:set_json_body(Req, EJ), State#base_state{log_msg = {warning_in_deprovision, Warnings}}};
+        {error, Error} ->
+            lager:error("Error in deprovision of ~p from ~p: ~p", [UserName, OrgName, Error]),
+            {{halt, 500}, Req, State#base_state{log_msg = {error_in_deprovision, Error}}}
+     end.
 
 malformed_request_message(Any, _Req, _State) ->
     error({unexpected_malformed_request_message, Any}).
