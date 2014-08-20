@@ -47,43 +47,43 @@ init(Config) ->
     chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
-    {ok, #container_state{}}.
+    {ok, #organization_state{}}.
 
 request_type() ->
-    "containers".
+    "organizations".
 
 allowed_methods(Req, State) ->
     {['GET', 'POST'], Req, State}.
 
 validate_request('GET', Req, #base_state{organization_guid = OrgId} = State) ->
-    {Req, State#base_state{resource_state = #oc_chef_container{org_id = OrgId}}};
-validate_request('POST', Req, #base_state{resource_state = ContainerState}= State) ->
+    {Req, State#base_state{resource_state = #oc_chef_organization{org_id = OrgId}}};
+validate_request('POST', Req, #base_state{resource_state = OrganizationState}= State) ->
     Body = wrq:req_body(Req),
     {ok, EJson} = oc_chef_organization:parse_binary_json(Body),
-    {Req, State#base_state{resource_state = ContainerState#container_state{container_data = EJson}}}.
+    {Req, State#base_state{resource_state = OrganizationState#organization_state{organization_data = EJson}}}.
 
 auth_info(Req, State) ->
     auth_info(wrq:method(Req), Req, State).
 
 auth_info('GET', Req, State) ->
-    {{container, container}, Req, State};
+    {{object, organization}, Req, State};
 auth_info('POST', Req, State) ->
-    {{create_in_container, container}, Req, State}.
+    {{create_in_container, object}, Req, State}.
 
 resource_exists(Req, State) ->
     {true, Req, State}.
 
-create_path(Req, #base_state{resource_state = #container_state{container_data = ContainerData}} = State) ->
-    Name = ej:get({<<"containername">>}, ContainerData),
+create_path(Req, #base_state{resource_state = #organization_state{organization_data = OrganizatoionData}} = State) ->
+    Name = ej:get({<<"orgname">>}, OrganizationData),
     {binary_to_list(Name), Req, State}.
 
-from_json(Req, #base_state{resource_state = #container_state{container_data = ContainerData,
-                                                             container_authz_id = AuthzId}} = State) ->
-    chef_wm_base:create_from_json(Req, State, oc_chef_container, {authz_id, AuthzId}, ContainerData).
+from_json(Req, #base_state{resource_state = #organization_state{organization_data = OrganizationData,
+                                                                organization_authz_id = AuthzId}} = State) ->
+    chef_wm_base:create_from_json(Req, State, oc_chef_organization, {authz_id, AuthzId}, OrganizationData).
 
 malformed_request_message(Any, _Req, _State) ->
     error({unexpected_malformed_request_message, Any}).
 
 -spec conflict_message(binary()) -> ejson_term().
 conflict_message(_Name) ->
-    {[{<<"error">>, [<<"Container already exists">>]}]}.
+    {[{<<"error">>, [<<"Organization already exists">>]}]}.
