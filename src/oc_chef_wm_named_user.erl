@@ -93,9 +93,13 @@ auth_info(Req, #base_state{resource_state = #user_state{ chef_user = not_found }
 auth_info(Req, State) ->
     auth_info(wrq:method(Req), Req, State).
 
-auth_info(Method, Req, #base_state{resource_state = #user_state{chef_user = User}} = State) ->
-    #chef_user{authz_id = AuthzId} = User,
+auth_info(Method, Req, #base_state{resource_args = undefined, resource_state = #user_state{chef_user = User}} = State) ->
+    #chef_user{authz_id = AuthzId} =   User,
     {auth_type(Method, AuthzId, State), Req, State}.
+auth_info(Method, Req, #base_state{resource_args = associations,
+
+                                   resource_state = #user_state{chef_user = User}} = State) ->
+    case
 
 auth_type('PUT', AuthzId, #user_state{user_data = UserData}) ->
     ExtId = ej:get({<<"external_authentication_uid">>}, UserData),
