@@ -85,7 +85,7 @@ resource_exists(Req, State) ->
 to_json(Req, #base_state{resource_state = #organization_state{
                                              oc_chef_organization = Org
                                             }} = State) ->
-    Ejson = oc_chef_organization:assemble_container_ejson(Org),
+    Ejson = oc_chef_organization:assemble_organization_ejson(Org),
     Json = chef_json:encode(Ejson),
     {Json, Req, State}.
 
