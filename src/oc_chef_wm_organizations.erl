@@ -66,7 +66,7 @@ auth_info(Req, State) ->
     auth_info(wrq:method(Req), Req, State).
 
 auth_info('GET', Req, State) ->
-    {{object, organization}, Req, State};
+    {{container, organization}, Req, State};
 auth_info('POST', Req, State) ->
     {{create_in_container, object}, Req, State}.
 
