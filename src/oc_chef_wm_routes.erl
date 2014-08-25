@@ -197,6 +197,12 @@ org_bulk_route_fun(association, Req) ->
     fun(Name) ->
             render_template(Template, BaseURI, [Name])
     end;
+org_bulk_route_fun(organization, Req) ->
+    BaseURI = chef_wm_util:base_uri(Req),
+    Template = template_for_type(organization),
+    fun(Name) ->
+            render_template(Template, BaseURI, [Name])
+    end;
 org_bulk_route_fun(user, Req) ->
 
     BaseURI = chef_wm_util:base_uri(Req),
@@ -254,6 +260,8 @@ template_for_type(group) ->
     "/organizations/~s/groups/~s";
 template_for_type(association) ->
     "/organizations/~s/users/~s";
+template_for_type(organization) ->
+    "/organizations/~s";
 template_for_type(user) ->
     "/users/~s".
 
