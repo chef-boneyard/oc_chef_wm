@@ -74,7 +74,7 @@ resource_exists(Req, State) ->
     {true, Req, State}.
 
 create_path(Req, #base_state{resource_state = #organization_state{organization_data = OrganizationData}} = State) ->
-    Name = ej:get({<<"orgname">>}, OrganizationData),
+    Name = ej:get({<<"name">>}, OrganizationData),
     {binary_to_list(Name), Req, State}.
 
 % IS this redudnant?
