@@ -122,6 +122,11 @@ org_route(cookbook_version, Req, Args) ->
     Template = "/organizations/~s/cookbooks/~s",
     TemplateArgs = [Org, Name],
     {name, Name} = lists:keyfind(name, 1, Args),
+    render_template(Template, Req, TemplateArgs);
+org_route(organization, Req, Args) ->
+    {name, Name} = lists:keyfind(name, 1, Args),
+    Template = "/organizations/~s",
+    TemplateArgs = [Name],
     render_template(Template, Req, TemplateArgs).
 
 route_organization_rest_object(ParentName, Req, Args) ->
