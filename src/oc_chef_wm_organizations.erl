@@ -68,7 +68,7 @@ auth_info(Req, State) ->
 auth_info('GET', Req, State) ->
     {{container, organization}, Req, State};
 auth_info('POST', Req, State) ->
-    {{create_in_container, object}, Req, State}.
+    {{create_in_container, organization}, Req, State}.
 
 resource_exists(Req, State) ->
     {true, Req, State}.
