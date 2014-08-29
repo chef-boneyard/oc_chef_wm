@@ -96,22 +96,59 @@ from_json(Req, #base_state{resource_state = #organization_state{
                           } = State) ->
     chef_wm_base:update_from_json(Req, State, Organization, OrganizationData).
 
+%% TODO:
+%% Verify we have tests for double delete, proper permissions
+%%
+
+%% NOTE: This is really only partially implemented
+%% A proper org deletion should
+%% 1) disassociate all users
+%% 2) Clean up <ORGNAME>_global_admins
+%% Up to here, is essentially what we had in the ruby version
+%% However, we don't
+%% 3) Clean up all org objects in sql and authz.
 delete_resource(Req, #base_state{chef_db_context = DbContext,
                                  requestor_id = RequestorId,
                                  resource_state = #organization_state{
                                                      oc_chef_organization = Organization}
                                 } = State) ->
-    %% NOTE: This is really only partially implemented
-    %% A proper org deletion should
-    %% 1) disassociate all users
-    %% 2) Clean up <ORGNAME>_global_admins
-    %% Up to here, is essentially what we had in the ruby version
-    %% However, we don't
-    %% 3) Clean up all org objects in sql and authz.
+    delete_global_admins(Req, State),
 
     ok = oc_chef_wm_base:delete_object(DbContext, Organization, RequestorId),
     Ejson = oc_chef_organization:assemble_organization_ejson(Organization),
     {true, chef_wm_util:set_json_body(Req, Ejson), State}.
+
+%% Delete global admins
+%% We delete both the global admins record in SQL, and the authz object.
+%% We do not directly remove the global_admins group from each users ACE; instead
+%% we rely on bifrost to maintain consistiency when the group is deleted.
+%%
+%% TODO: Make sure tests explicitly test for global admins removal on org deletion
+%% TODO: Come up with a strategy for transient failures; once we start, it's really hard to
+%%       go back, and we might not be able to repeat.
+%% Is there an order that's safe?
+delete_global_admins(_Req, #base_state{chef_db_context = DbContext,
+                                       organization_name = OrgName,
+                                       requestor_id = RequestorId} = _State) ->
+    %% Refactor the fetch of global admins, along with that in oc_chef_wm_association
+    GlobalGroupName = oc_chef_authz_db:make_global_admin_group_name(OrgName),
+
+    case chef_db:fetch(#oc_chef_group{org_id = ?GLOBAL_PLACEHOLDER_ORG_ID,
+                                       name = GlobalGroupName,
+                                       for_requestor_id=RequestorId},
+                        DbContext) of
+        #oc_chef_group{authz_id = AuthzId} = GlobalAdmins ->
+            %% This is done as superuser, because we've already checked our org's permissions, and
+            %% those should take precedence over those on global_admins.
+            oc_chef_authz:delete_resource(superuser, group, AuthzId),
+            oc_chef_object_db:safe_delete(DbContext, GlobalAdmins, RequestorId);
+        not_found ->
+            lager:error("Could not find global admins group ~s", [GlobalGroupName]),
+            %% Ignoring this error lets us retry the whole deletion process if it fails part
+            %% of the way through
+            ok
+    end.
+
 
 malformed_request_message(Any, _Req, _state) ->
     error({unexpected_malformed_request_message, Any}).
