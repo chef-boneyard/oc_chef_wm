@@ -61,6 +61,12 @@ init([]) ->
            {webmachine_mochiweb, start, [WebConfig]},
            permanent, 5000, worker, dynamic},
 
+    % TODO - from chef_wm_sup - seems we want this
+    Folsom = {folsom_sup,
+              {folsom_sup, start_link, []},
+              permanent, 5000, supervisor, [folsom_sup]},
+
+
     KeyRing = {chef_keyring,
                {chef_keyring, start_link, []},
                permanent, brutal_kill, worker, [chef_keyring]},
@@ -77,7 +83,8 @@ init([]) ->
              {chef_index_sup, start_link, []},
              permanent, 5000, supervisor, [chef_index_sup]},
 
-    {ok, { {one_for_one, 10, 10}, maybe_start_action(Action, [KeyRing,
+    {ok, { {one_for_one, 10, 10}, maybe_start_action(Action, [Folsom,
+                                                              KeyRing,
                                                               Index,
                                                               KeyGenWorkerSup,
                                                               KeyCache,
@@ -85,7 +92,7 @@ init([]) ->
 
 maybe_start_action(true, Workers) ->
     lager:info("Starting oc_chef_action", []),
-    [amqp_child_spec() | Workers];
+    [actions_child_spec() | Workers];
 maybe_start_action(false, Workers) ->
     lager:info("Not starting Actionlog supervisor since actionlog is disabled."),
     Workers.
@@ -219,7 +226,7 @@ default_resource_init() ->
             Defaults
     end.
 
-amqp_child_spec() ->
+actions_child_spec() ->
     Host = envy_parse:host_to_ip(oc_chef_wm, actions_host),
     Port = envy:get(oc_chef_wm, actions_port, non_neg_integer),
     User = envy:get(oc_chef_wm, actions_user, binary),
