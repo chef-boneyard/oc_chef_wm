@@ -6,7 +6,6 @@ DIALYZER_DEPS = deps/chef_authn/ebin \
                 deps/chef_db/ebin \
                 deps/chef_index/ebin \
                 deps/chef_objects/ebin \
-                deps/chef_wm/ebin \
                 deps/ej/ebin \
                 deps/mini_s3/ebin \
                 deps/pooler/ebin \
