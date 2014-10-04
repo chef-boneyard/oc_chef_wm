@@ -1,8 +1,10 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92-*-
 %% ex: ts=4 sw=4 et
-%% @author Kevin Smith <kevin@opscode.com>
-%% @author Seth Falcon <seth@opscode.com>
-%% Copyright 2012 Opscode, Inc. All Rights Reserved.
+%%
+%% @author Kevin Smith
+%% @author Seth Falcon <seth@getchef.com>
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -62,8 +64,7 @@
 %% -callback request_type() -> string().
 %% -callback auth_info(#wm_reqdata{}, any()) -> {not_found | binary(), #wm_reqdata{}, any()}.
 
--include("chef_wm.hrl").
--include_lib("eunit/include/eunit.hrl").
+-include("oc_chef_wm.hrl").
 -include_lib("public_key/include/public_key.hrl").
 
 init(ResourceMod, Config) ->
@@ -177,7 +178,7 @@ is_authorized(Req, State) ->
             {true, Req1, State1};
         {false, ReqOther, StateOther} ->
             %% FIXME: the supported version is determined by the chef_authn application
-            %% also, see: https://wiki.corp.opscode.com/display/CORP/RFC+Authentication+Version+Negotiation
+            %% also, see: https://wiki.corp.getchef.com/display/CORP/RFC+Authentication+Version+Negotiation
             {"X-Ops-Sign version=\"1.0\" version=\"1.1\"", ReqOther, StateOther}
     end.
 

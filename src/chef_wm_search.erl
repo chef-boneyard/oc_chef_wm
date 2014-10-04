@@ -1,12 +1,14 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92-*-
 %% ex: ts=4 sw=4 et
-%% @author Christopher Brown <cb@opscode.com>
-%% @author Seth Falcon <seth@opscode.com>
-%% @author John Keiser <jkeiser@opscode.com>
-%% @author Christopher Maier <cm@opscode.com>
-%% @author Kevin Smith <kevin@opscode.com>
-%% @author Seth Chisamore <schisamo@opscode.com>
-%% Copyright 2012 Opscode, Inc. All Rights Reserved.
+%%
+%% @author Christopher Brown
+%% @author Seth Falcon <seth@getchef.com>
+%% @author John Keiser <jkeiser@getchef.com>
+%% @author Christopher Maier <cm@getchef.com>
+%% @author Kevin Smith
+%% @author Seth Chisamore <schisamo@getchef.com>
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -26,7 +28,7 @@
 
 -module(chef_wm_search).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 -include_lib("chef_index/include/chef_solr.hrl").
 
 -define(DEFAULT_BATCH_SIZE, 5).
@@ -39,16 +41,13 @@
                         malformed_request/2,
                         ping/2]}]).
 
--mixin([{?BASE_RESOURCE, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
+-mixin([{oc_chef_wm_base, [forbidden/2,
+                           is_authorized/2,
+                           service_available/2]}]).
 
-%% I think we will end up moving the generic complete wm callbacks like post_is_create,
-%% content_types_* into chef_wm_base and mixing those in here separately so that we only
-%% have to have those defined in one place.
+-behaviour(chef_wm).
 
 %% chef_wm behavior callbacks
--behaviour(chef_wm).
 -export([auth_info/2,
          init/1,
          init_resource_state/1,

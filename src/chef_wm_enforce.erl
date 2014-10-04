@@ -1,6 +1,7 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92-*-
 %% ex: ts=4 sw=4 et
-%% Copyright 2013 Opscode, Inc. All Rights Reserved.
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -24,13 +25,14 @@
 %% return a possibly modified request data item (`#wm_reqdata{}').
 %%
 %% @end
+
 -module(chef_wm_enforce).
 
 -export([
          max_size/1
         ]).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 %% This is the max size allowed for incoming request bodies.
 -define(MAX_SIZE, 1000000).
 
@@ -67,7 +69,6 @@ max_size(_Method, Req, _TunedMaxSize) ->
 
 validate_size(Integer) when is_integer(Integer) andalso Integer > 0 ->
     true;
-
 validate_size(disabled) ->
     true;
 validate_size(Value) ->

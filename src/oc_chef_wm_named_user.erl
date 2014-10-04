@@ -1,8 +1,10 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92-*-
 %% ex: ts=4 sw=4 et
+%%
 %% @author Seth Falcon <seth@getchef.com>
 %% @author Marc Paradise <marc@getchef.com>
-%% Copyright 2012-2014 Chef, Inc. All Rights Reserved.
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -19,10 +21,8 @@
 %% under the License.
 %%
 
-
 -module(oc_chef_wm_named_user).
 
--include_lib("chef_wm/include/chef_wm.hrl").
 -include_lib("oc_chef_wm.hrl").
 
 -mixin([{chef_wm_base, [content_types_accepted/2,
@@ -32,12 +32,13 @@
                         ping/2,
                         post_is_create/2]}]).
 
--mixin([{?BASE_RESOURCE, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
+-mixin([{oc_chef_wm_base, [forbidden/2,
+                           is_authorized/2,
+                           service_available/2]}]).
+
+-behaviour(chef_wm).
 
 %% chef_wm behaviour callbacks
--behaviour(chef_wm).
 -export([
          auth_info/2,
          init/1,
@@ -57,6 +58,7 @@
 
 init(Config) ->
     chef_wm_base:init(?MODULE, Config).
+
 init_resource_state(_Config) ->
     {ok, #user_state{}}.
 

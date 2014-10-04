@@ -1,8 +1,10 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92-*-
 %% ex: ts=4 sw=4 et
-%% @author Christopher Maier <cm@opscode.com>
-%% @author Seth Falcon <seth@opscode.com>
-%% Copyright 2012 Opscode, Inc. All Rights Reserved.
+%%
+%% @author Christopher Maier <cm@getchef.com>
+%% @author Seth Falcon <seth@getchef.com>
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -19,10 +21,9 @@
 %% under the License.
 %%
 
-
 -module(chef_wm_named_role).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 
 -mixin([{chef_wm_base, [content_types_accepted/2,
                         content_types_provided/2,
@@ -30,12 +31,13 @@
                         malformed_request/2,
                         ping/2]}]).
 
--mixin([{?BASE_RESOURCE, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
+-mixin([{oc_chef_wm_base, [forbidden/2,
+                           is_authorized/2,
+                           service_available/2]}]).
+
+-behaviour(chef_wm).
 
 %% chef_wm behavior callbacks
--behaviour(chef_wm).
 -export([auth_info/2,
          init/1,
          init_resource_state/1,

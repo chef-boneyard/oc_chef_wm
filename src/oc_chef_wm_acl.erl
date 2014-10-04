@@ -1,7 +1,9 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92-*-
 %% ex: ts=4 sw=4 et
+%%
 %% @author Douglas Triggs <doug@getchef.com>
-%% Copyright 2014 Chef, Inc. All Rights Reserved.
+%%
+%% @copyright 2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -20,7 +22,6 @@
 
 -module(oc_chef_wm_acl).
 
--include_lib("chef_wm/include/chef_wm.hrl").
 -include_lib("oc_chef_wm.hrl").
 
 -mixin([{chef_wm_base, [content_types_accepted/2,
@@ -30,9 +31,9 @@
                         ping/2,
                         post_is_create/2]}]).
 
--mixin([{?BASE_RESOURCE, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
+-mixin([{oc_chef_wm_base, [forbidden/2,
+                           is_authorized/2,
+                           service_available/2]}]).
 
 %% chef_wm behaviour callbacks
 -behaviour(chef_wm).
@@ -69,7 +70,7 @@ allowed_methods(Req, State) ->
 validate_request('GET', Req, #base_state{chef_db_context = DbContext,
                                          organization_guid = OrgId,
                                          organization_name = OrgName,
-                                         resource_state = #acl_state{type = Type} = 
+                                         resource_state = #acl_state{type = Type} =
                                              AclState} = State) ->
     validate_authz_id(Req, State, AclState, Type, OrgId, OrgName, DbContext).
 

@@ -1,10 +1,12 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
+%%
 %% @author Christopher Brown <cb@getchef.com>
 %% @author Christopher Maier <cm@getchef.com>
 %% @author Seth Falcon <seth@getchef.com>
 %% @author Ho-Sheng Hsiao <hosh@getchef.com>
-%% Copyright 2011-2014 Chef Software, Inc. All Rights Reserved.
+%%
+%% @copyright 2011-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -42,7 +44,7 @@
          lists_diff/2
         ]).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 
 %% TODO: These types are just placeholders until we get all the types cleaned up
 -type ejson() :: {[tuple()]}.

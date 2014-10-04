@@ -3,7 +3,7 @@
 %%
 %% @author James Casey <james@getchef.com>
 %%
-%% Copyright 2013-2014 Chef, Inc. All Rights Reserved.
+%% @copyright 2013-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -22,7 +22,6 @@
 
 -module(oc_chef_action).
 
--include_lib("chef_wm/include/chef_wm.hrl").
 -include_lib("oc_chef_wm.hrl").
 
 -export([log_action/2]).

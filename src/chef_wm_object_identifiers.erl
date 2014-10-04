@@ -1,7 +1,9 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
-%% @author  Marc Paradise <marc@opscode.com>
-%% Copyright 2012 Opscode, Inc. All Rights Reserved.
+%%
+%% @author  Marc Paradise <marc@getchef.com>
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -35,17 +37,18 @@
 %% '''
 %%
 %% NOTE: only implemented for node objects
-%%
+%% @end
+
 -module(chef_wm_object_identifiers).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 
 -mixin([{chef_wm_base, [content_types_provided/2,
                         finish_request/2,
                         ping/2,
                         validate_request/3]}]).
 
--mixin([{?BASE_RESOURCE, [service_available/2]}]).
+-mixin([{oc_chef_wm_base, [service_available/2]}]).
 
 -export([
          allowed_methods/2,

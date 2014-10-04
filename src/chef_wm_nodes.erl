@@ -1,7 +1,9 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
-%% @author Seth Falcon <seth@opscode.com>
-%% Copyright 2011-2012 Opscode, Inc. All Rights Reserved.
+%%
+%% @author Seth Falcon <seth@getchef.com>
+%%
+%% @copyright 2011-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -18,7 +20,6 @@
 %% under the License.
 %%
 
-
 %% @doc Resource module for Chef nodes endpoint
 %%
 %% The REST API provided by this module is as follows:
@@ -28,11 +29,11 @@
 %%
 %% Fetch all node names
 %% GET /nodes/
-%%
-%%
+%% @end
+
 -module(chef_wm_nodes).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 
 -mixin([{chef_wm_base, [content_types_accepted/2,
                         content_types_provided/2,
@@ -41,16 +42,17 @@
                         ping/2,
                         post_is_create/2]}]).
 
--mixin([{?BASE_RESOURCE, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
+-mixin([{oc_chef_wm_base, [forbidden/2,
+                           is_authorized/2,
+                           service_available/2]}]).
 
 %% I think we will end up moving the generic complete wm callbacks like post_is_create,
 %% content_types_* into chef_wm_base and mixing those in here separately so that we only
 %% have to have those defined in one place.
 
-%% chef_wm behavior callbacks
 -behaviour(chef_wm).
+
+%% chef_wm behavior callbacks
 -export([auth_info/2,
          init/1,
          init_resource_state/1,

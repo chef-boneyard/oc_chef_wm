@@ -1,8 +1,9 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
-%% @author Christopher Maier <cm@opscode.com>
-%% @doc Resource module for Environment Roles endpoint
-%% Copyright 2012 Opscode, Inc. All Rights Reserved.
+%%
+%% @author Christopher Maier <cm@getchef.com>
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -18,13 +19,15 @@
 %% specific language governing permissions and limitations
 %% under the License.
 %%
-
-
+%% @doc Resource module for Environment Roles endpoint
+%%
 -module(chef_wm_environment_roles).
 
-%% chef_wm behaviour callbacks
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
+
 -behaviour(chef_wm).
+
+%% chef_wm behaviour callbacks
 -export([auth_info/2,
          init/1,
          init_resource_state/1,
@@ -33,9 +36,9 @@
 %% validate_request/3 is mixed in below
 
 %% Mix in platform-specific Webmachine callback implementations
--mixin([{?BASE_RESOURCE, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
+-mixin([{oc_chef_wm_base, [forbidden/2,
+                           is_authorized/2,
+                           service_available/2]}]).
 
 %% Mix in universal Webmachine callback implementations, common to all
 %% Chef platforms

@@ -1,26 +1,10 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92-*-
 %% ex: ts=4 sw=4 et
-%% @author Seth Falcon <seth@opscode.com>
-%% @author Christopher Maier <cm@opscode.com>
-%% @doc Resource for /data/:BAG_NAME
 %%
-%% This resource module serves two purposes. We initially factored it into two separate
-%% modules, but this trips up webmachine for reporting allowed methods when returning 405
-%% errors (and possibly other issues).
+%% @author Seth Falcon <seth@getchef.com>
+%% @author Christopher Maier <cm@getchef.com>
 %%
-%% The data_bag object is currently only a place to hang authz and hold a name. You cannot
-%% GET a data_bag itself or modify it via PUT. Once created, you can only DELETE it. Note
-%% that data_bag deletion will cascade the delete to all data_bag_items contained in the
-%% data_bag.
-%%
-%% The functions that serve 'GET' and 'POST' in this resource are easiest to think about if
-%% you imagine that our API looked like /data/:BAG_NAME/items. This module handles GET to
-%% list all data_bag_items within a given data_bag and POST to create new data_bag_items
-%% within a data_bag.
-%%
-%%
-%% @end
-%% Copyright 2012 Opscode, Inc. All Rights Reserved.
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -36,11 +20,27 @@
 %% specific language governing permissions and limitations
 %% under the License.
 %%
-
+%% @doc Resource for /organizations/:ORG/data/:BAG_NAME
+%%
+%% This resource module serves two purposes. We initially factored it into two separate
+%% modules, but this trips up webmachine for reporting allowed methods when returning 405
+%% errors (and possibly other issues).
+%%
+%% The data_bag object is currently only a place to hang authz and hold a name. You cannot
+%% GET a data_bag itself or modify it via PUT. Once created, you can only DELETE it. Note
+%% that data_bag deletion will cascade the delete to all data_bag_items contained in the
+%% data_bag.
+%%
+%% The functions that serve 'GET' and 'POST' in this resource are easiest to think about if
+%% you imagine that our API looked like /data/:BAG_NAME/items. This module handles GET to
+%% list all data_bag_items within a given data_bag and POST to create new data_bag_items
+%% within a data_bag.
+%%
+%% @end
 
 -module(chef_wm_named_data).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 
 -mixin([{chef_wm_base, [content_types_accepted/2,
                         content_types_provided/2,
@@ -49,12 +49,13 @@
                         ping/2,
                         post_is_create/2]}]).
 
--mixin([{?BASE_RESOURCE, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
+-mixin([{oc_chef_wm_base, [forbidden/2,
+                           is_authorized/2,
+                           service_available/2]}]).
+
+-behaviour(chef_wm).
 
 %% chef_wm behaviour callbacks
--behaviour(chef_wm).
 -export([
          auth_info/2,
          init/1,

@@ -1,7 +1,9 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92-*-
 %% ex: ts=4 sw=4 et
-%% @author Christopher Maier <cm@opscode.com>
-%% Copyright 2012 Opscode, Inc. All Rights Reserved.
+%%
+%% @author Christopher Maier <cm@getchef.com>
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -20,7 +22,7 @@
 
 -module(chef_wm_malformed).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 
 -export([
          malformed_request_message/3

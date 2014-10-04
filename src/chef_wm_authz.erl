@@ -1,7 +1,8 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
-%% @author James Casey <james@opscode.com>
-%% Copyright 2012 Opscode, Inc. All Rights Reserved.
+%% @author James Casey <james@getchef.com>
+%%
+%% @copyright 2012-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -18,7 +19,6 @@
 %% under the License.
 %%
 
-
 %% Authz logic and helpers for chef_wm endpoints
 %%
 
@@ -34,7 +34,7 @@
          is_requesting_node/2,
          is_validator/1]).
 
--include("chef_wm.hrl").
+-include("oc_chef_wm.hrl").
 
 %% @doc Reject validator clients, but allow all other requestors.
 all_but_validators(#chef_client{validator=true}) -> forbidden;

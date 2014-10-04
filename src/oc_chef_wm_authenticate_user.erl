@@ -1,13 +1,29 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
+%%
 %% @author Marc Paradise <marc@getchef.com>
-%% @copyright 2014 Chef Software Inc
+%%
+%% @copyright 2014 Chef Software, Inc. All Rights Reserved
+%%
+%% This file is provided to you under the Apache License,
+%% Version 2.0 (the "License"); you may not use this file
+%% except in compliance with the License.  You may obtain
+%% a copy of the License at
+%%
+%%   http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing,
+%% software distributed under the License is distributed on an
+%% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+%% KIND, either express or implied.  See the License for the
+%% specific language governing permissions and limitations
+%% under the License.
+%%
 
 %% @doc Endpoint used by webui for user authentication
 
 -module(oc_chef_wm_authenticate_user).
 
--include_lib("chef_wm/include/chef_wm.hrl").
 -include("oc_chef_wm.hrl").
 
 -mixin([{chef_wm_base, [content_types_provided/2,
@@ -16,8 +32,8 @@
                         ping/2 ]}]).
 
 -mixin([{oc_chef_wm_base, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
+                           is_authorized/2,
+                           service_available/2]}]).
 
 -behavior(chef_wm).
 -export([auth_info/2,

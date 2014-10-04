@@ -1,24 +1,36 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
+%%
 %% @author Marc A. Paradise <marc@getchef.com>
-%% Copyright 2014 Chef Software, Inc. All Rights Reserved.
+%% @copyright 2014 Chef Software, Inc. All Rights Reserved.
 %%
-%% This module handles the following
+%% This file is provided to you under the Apache License,
+%% Version 2.0 (the "License"); you may not use this file
+%% except in compliance with the License.  You may obtain
+%% a copy of the License at
 %%
-% GET   /organizations/:orgname/users
-%        - list of org users.
-% POST  /organizations/:orgname/users -
-%        - immediately associate a user to an org. Superuser only.
-% GET   /organizations/:orgname/users/:username
-%        - get user details for an associated user. Must have read on user and org.
-% DELETE /organizations/:orgname/users/:username
-%        - disassociate a user from an org. Org Admin.
-%
-%
+%%   http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing,
+%% software distributed under the License is distributed on an
+%% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+%% KIND, either express or implied.  See the License for the
+%% specific language governing permissions and limitations
+%% under the License.
+%%
+%% @doc This module handles the following
+%%
+%% GET   /organizations/:orgname/users
+%%        - list of org users.
+%% POST  /organizations/:orgname/users -
+%%        - immediately associate a user to an org. Superuser only.
+%% GET   /organizations/:orgname/users/:username
+%%        - get user details for an associated user. Must have read on user and org.
+%% DELETE /organizations/:orgname/users/:username
+%%        - disassociate a user from an org. Org Admin.
 
 -module(oc_chef_wm_org_associations).
 
--include_lib("chef_wm/include/chef_wm.hrl").
 -include("oc_chef_wm.hrl").
 
 -mixin([{chef_wm_base, [content_types_accepted/2,

@@ -1,11 +1,10 @@
 %% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
 %% ex: ts=4 sw=4 et
-%%% @author Kevin Smith <kevin@opscode.com>
-%%% @author Seth Falcon <seth@opscode.com>
-%%% @doc
-%%% REST resource for monitoring status of erchef
-%%% @end
-%% Copyright 2011-2012 Opscode, Inc. All Rights Reserved.
+%%
+%% @author Kevin Smith <kevin@getchef.com>
+%% @author Seth Falcon <seth@getchef.com>
+%%
+%% @copyright 2011-2014 Chef Software, Inc. All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -21,6 +20,9 @@
 %% specific language governing permissions and limitations
 %% under the License.
 %%
+%%% @doc
+%%% REST resource for monitoring status of erchef
+%%% @end
 
 -module(chef_wm_status).
 
