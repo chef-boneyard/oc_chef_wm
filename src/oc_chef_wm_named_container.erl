@@ -49,7 +49,7 @@
          to_json/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #container_state{}}.
@@ -95,7 +95,7 @@ from_json(Req, #base_state{resource_state = #container_state{
                                                container_data = ContainerData
                                               }
                           } = State) ->
-    chef_wm_base:update_from_json(Req, State, Container, ContainerData).
+    oc_chef_wm_base:update_from_json(Req, State, Container, ContainerData).
 
 delete_resource(Req, #base_state{chef_db_context = DbContext,
                                  requestor_id = RequestorId,

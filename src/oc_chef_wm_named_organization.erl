@@ -49,7 +49,7 @@
          to_json/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #organization_state{}}.
@@ -110,7 +110,7 @@ from_json(Req, #base_state{resource_state = #organization_state{
                                                organization_data = OrganizationData
                                               }
                           } = State) ->
-    chef_wm_base:update_from_json(Req, State, Organization, OrganizationData).
+    oc_chef_wm_base:update_from_json(Req, State, Organization, OrganizationData).
 
 %% TODO:
 %% Verify we have tests for double delete, proper permissions

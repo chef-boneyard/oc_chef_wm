@@ -70,7 +70,7 @@
        ]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #client_state{}}.
@@ -131,7 +131,7 @@ handle_client_create({PublicKey, PrivateKey}, Req,
                                      #client_state{client_data = ClientData,
                                                    client_authz_id = AuthzId}} = State) ->
     ClientData1 = chef_object_base:set_public_key(ClientData, PublicKey),
-    case chef_wm_base:create_from_json(Req, State, chef_client, {authz_id, AuthzId}, ClientData1) of
+    case oc_chef_wm_base:create_from_json(Req, State, chef_client, {authz_id, AuthzId}, ClientData1) of
         {true, Req1, State1} ->
             %% create_from_json by default sets the response to a json body
             %% containing only a uri key. Here we want to add the generated key

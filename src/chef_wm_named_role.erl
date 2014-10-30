@@ -54,7 +54,7 @@
 
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(Config) ->
     %% this resource serves named roles as well as the /roles/:role/environments endpoint
@@ -121,7 +121,7 @@ to_json(Req, #base_state{resource_state = #role_state{
 
 from_json(Req, #base_state{resource_state = #role_state{chef_role = Role,
                                                         role_data = RoleData}} = State) ->
-    chef_wm_base:update_from_json(Req, State, Role, RoleData).
+    oc_chef_wm_base:update_from_json(Req, State, Role, RoleData).
 
 delete_resource(Req, #base_state{chef_db_context = DbContext,
                                  requestor_id = RequestorId,

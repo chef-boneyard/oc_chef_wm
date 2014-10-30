@@ -55,7 +55,7 @@
          resource_exists/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #environment_state{}}.
@@ -105,7 +105,7 @@ from_json(Req, #base_state{resource_state = EnvironmentState}=State) ->
     #environment_state{environment_data = EnvironmentData,
                        environment_authz_id = AuthzId
                       } = EnvironmentState,
-    chef_wm_base:create_from_json(Req, State, chef_environment, {authz_id, AuthzId},
+    oc_chef_wm_base:create_from_json(Req, State, chef_environment, {authz_id, AuthzId},
                                   EnvironmentData).
 
 malformed_request_message(Any, _Req, _State) ->

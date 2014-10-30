@@ -31,15 +31,14 @@
                         content_types_provided/2,
                         finish_request/2,
                         malformed_request/2,
-                        ping/2]}]).
+                        ping/2,
+                        forbidden/2,
+                        is_authorized/2,
+                        service_available/2]}]).
 
--mixin([{?BASE_RESOURCE, [forbidden/2,
-                          is_authorized/2,
-                          service_available/2]}]).
-
-%% chef_wm behavior callbacks
 -behaviour(chef_wm).
 
+%% chef_wm behavior callbacks
 -export([auth_info/2,
          init/1,
          init_resource_state/1,
@@ -55,7 +54,7 @@
          to_json/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #cookbook_state{}}.
@@ -139,11 +138,11 @@ from_json(Req, #base_state{resource_state = CookbookState} = State) ->
             Frozen = (CBVersion#chef_cookbook_version.frozen =:= true orelse
                       ej:get({<<"frozen?">>}, CBData, false)),
             CBData1 = ej:set({<<"frozen?">>}, CBData, Frozen),
-            chef_wm_base:update_from_json(Req, State, CBVersion, CBData1);
+            oc_chef_wm_base:update_from_json(Req, State, CBVersion, CBData1);
         false ->
             #cookbook_state{authz_id = AuthzId,
                             cookbook_data = CBData} = CookbookState,
-            case chef_wm_base:create_from_json(Req, State, chef_cookbook_version,
+            case oc_chef_wm_base:create_from_json(Req, State, chef_cookbook_version,
                                                {authz_id, AuthzId}, CBData) of
                 {true, Req1, State1} ->
                     %% munge response since we are using PUT as create here
@@ -162,7 +161,7 @@ delete_resource(Req, #base_state{chef_db_context = DbContext,
                                  resource_state = #cookbook_state{
                                                      chef_cookbook_version = CookbookVersion}
                                 } = State) ->
-    ok = ?BASE_RESOURCE:delete_object(DbContext, CookbookVersion, RequestorId),
+    ok = oc_chef_wm_base:delete_object(DbContext, CookbookVersion, RequestorId),
     Json = chef_cookbook_version:assemble_cookbook_ejson(CookbookVersion, chef_wm_util:base_uri(Req)),
     {true, chef_wm_util:set_json_body(Req, Json), State}.
 

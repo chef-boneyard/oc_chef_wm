@@ -62,7 +62,7 @@
          to_json/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #association_state{}}.
@@ -158,7 +158,7 @@ to_json(Req, #base_state{organization_guid = OrgId,
                          chef_db_context = DbContext,
                          resource_state = #association_state{user = undefined}} = State ) ->
     % Because we're not using the standard form of "[a,b,c]"  in our response in order to
-    % keep compatible, using chef_wm_base:list_object_json does more than we can use -
+    % keep compatible, using oc_chef_wm_base:list_object_json does more than we can use -
     % instead capture the result directly here.
     case chef_db:list(#oc_chef_org_user_association{org_id = OrgId}, DbContext) of
         Names when is_list(Names) ->

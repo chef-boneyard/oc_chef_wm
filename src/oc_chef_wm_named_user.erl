@@ -57,7 +57,7 @@
        ]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #user_state{}}.
@@ -190,12 +190,12 @@ from_json(Req, #base_state{resource_state = #user_state{ chef_user = User, user_
             {{halt, 503}, Req, State#base_state{log_msg = keygen_timeout}};
         UserDataWithKeys ->
             %% Custom json body needed to maintain compatibility with opscode-account behavior.
-            %% chef_wm_base:update_from_json will reply with the complete object, but
+            %% oc_chef_wm_base:update_from_json will reply with the complete object, but
             %% clients currently expect only a URI, and a private key if the key is new.
             %%
             %% However, we will retain the returned Request since Location header wil have been
             %% correctly set if the username changed.
-            case chef_wm_base:update_from_json(Req, State, User, UserDataWithKeys) of
+            case oc_chef_wm_base:update_from_json(Req, State, User, UserDataWithKeys) of
                 {true, Req1, State1} ->
                     {true, make_update_response(Req1, UserDataWithKeys), State1};
                 Other ->
@@ -250,7 +250,7 @@ delete_resource(Req, #base_state{chef_db_context = DbContext,
 
 %% Expected update response for users is currently just
 %% "uri" and (if regenerated) "privat_key" - this function will override
-%% whatever has been set in chef_wm_base:update_from_ejson with these values.
+%% whatever has been set in oc_chef_wm_base:update_from_ejson with these values.
 make_update_response(Request, OrigEJson) ->
     NewName = chef_user:username_from_ejson(OrigEJson),
     Uri = ?BASE_ROUTES:route(user, Request, [{name, NewName}]),

@@ -33,7 +33,7 @@
 
 -define(DEFAULT_BATCH_SIZE, 5).
 
-%% We chose to *not* mixin chef_wm_base:post_is_create/2 as a POST in
+%% We chose to *not* mixin oc_chef_wm_base:post_is_create/2 as a POST in
 %% this resource is purely for processing...not resource creation.
 -mixin([{chef_wm_base, [content_types_accepted/2,
                         content_types_provided/2,
@@ -65,7 +65,7 @@
 -endif.
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #search_state{}}.

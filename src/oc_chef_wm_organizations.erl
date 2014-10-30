@@ -59,7 +59,7 @@
         ]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #organization_state{}}.
@@ -177,10 +177,10 @@ maybe_create_org({true, Req,
                                    organization_guid = OrgId,
                                    organization_name = OrgName},
 
-    case chef_wm_base:create_from_json(Req, EnvState, chef_environment, {authz_id, EnvAuthzId}, EnvEJson) of
+    case oc_chef_wm_base:create_from_json(Req, EnvState, chef_environment, {authz_id, EnvAuthzId}, EnvEJson) of
         {{halt, _Code}, _Req, _State} = Response -> Response;
         {true, _Req, _State} ->
-            case chef_wm_base:create_from_json(Req, ClientState, chef_client, {authz_id, ClientAuthzId}, ClientEJson) of
+            case oc_chef_wm_base:create_from_json(Req, ClientState, chef_client, {authz_id, ClientAuthzId}, ClientEJson) of
                 {{halt, _Code1}, _Req1, _State1} = Response1 -> Response1;
                 {true, _Req1, _State1} ->
                     URI = ?BASE_ROUTES:route(organization, Req, [{name, OrgName}]),

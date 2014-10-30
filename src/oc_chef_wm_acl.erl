@@ -55,7 +55,7 @@
         ]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(Config) ->
     AclType = ?gv(acl_object_type, Config),

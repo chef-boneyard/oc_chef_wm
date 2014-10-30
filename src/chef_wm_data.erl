@@ -59,7 +59,7 @@
        ]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #data_state{}}.
@@ -99,7 +99,7 @@ create_path(Req, #base_state{resource_state = #data_state{
 from_json(Req, #base_state{resource_state =
                                #data_state{data_bag_name = DataBagName,
                                            data_bag_authz_id = AuthzId}} = State) ->
-    chef_wm_base:create_from_json(Req, State, chef_data_bag, {authz_id, AuthzId}, DataBagName).
+    oc_chef_wm_base:create_from_json(Req, State, chef_data_bag, {authz_id, AuthzId}, DataBagName).
 
 %% error message functions
 

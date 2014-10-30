@@ -54,7 +54,7 @@
          to_json/2]).
 
 init(Config) ->
-  chef_wm_base:init(?MODULE, Config).
+  oc_chef_wm_base:init(?MODULE, Config).
 
 %% Need to add the user_state
 init_resource_state(_Config) ->
@@ -111,7 +111,7 @@ handle_user_create({PublicKey, PrivateKey}, Req,
     Name = chef_user:username_from_ejson(UserData),
     UserWithKey = chef_object_base:set_public_key(UserData, PublicKey),
 
-    case chef_wm_base:create_from_json(Req, State, chef_user, {authz_id, AuthzId}, UserWithKey) of
+    case oc_chef_wm_base:create_from_json(Req, State, chef_user, {authz_id, AuthzId}, UserWithKey) of
         {true, Req1, State1} ->
             Uri = ?BASE_ROUTES:route(user, Req1, [{name, Name}]),
             Ejson = ej:set({<<"private_key">>}, {[{<<"uri">>, Uri}]}, PrivateKey),
@@ -131,7 +131,7 @@ to_json(Req, State) ->
         "true" ->
             {chef_json:encode(verbose_users_as_ejson()), Req, State};
         _ ->
-            chef_wm_base:list_objects_json(Req, State#base_state{resource_state =
+            oc_chef_wm_base:list_objects_json(Req, State#base_state{resource_state =
                                                                  #chef_user{email = wrq:get_qs_value("email", Req)} })
     end.
 

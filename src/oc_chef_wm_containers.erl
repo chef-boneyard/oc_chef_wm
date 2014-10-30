@@ -58,7 +58,7 @@
         ]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #container_state{}}.
@@ -93,7 +93,7 @@ create_path(Req, #base_state{resource_state = #container_state{container_data = 
 
 from_json(Req, #base_state{resource_state = #container_state{container_data = ContainerData,
                                                              container_authz_id = AuthzId}} = State) ->
-    chef_wm_base:create_from_json(Req, State, oc_chef_container, {authz_id, AuthzId}, ContainerData).
+    oc_chef_wm_base:create_from_json(Req, State, oc_chef_container, {authz_id, AuthzId}, ContainerData).
 
 malformed_request_message(Any, _Req, _State) ->
     error({unexpected_malformed_request_message, Any}).

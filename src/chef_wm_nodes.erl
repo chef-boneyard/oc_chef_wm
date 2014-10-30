@@ -68,7 +68,7 @@
          to_json/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #node_state{}}.
@@ -129,7 +129,7 @@ create_path(Req, #base_state{resource_state = NodeState}=State) ->
 
 from_json(Req, #base_state{resource_state = NodeState} = State) ->
     #node_state{node_data = NodeJson, node_authz_id = AuthzId} = NodeState,
-    chef_wm_base:create_from_json(Req, State, chef_node, {authz_id, AuthzId}, NodeJson).
+    oc_chef_wm_base:create_from_json(Req, State, chef_node, {authz_id, AuthzId}, NodeJson).
 
 %% internal functions
 list_nodes(EnvName, Req, #base_state{

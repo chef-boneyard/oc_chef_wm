@@ -29,11 +29,10 @@
                         finish_request/2,
                         malformed_request/2,
                         ping/2,
-                        post_is_create/2]}]).
-
--mixin([{oc_chef_wm_base, [forbidden/2,
-                           is_authorized/2,
-                           service_available/2]}]).
+                        post_is_create/2,
+                        forbidden/2,
+                        is_authorized/2,
+                        service_available/2]}]).
 
 -behaviour(chef_wm).
 
@@ -56,7 +55,7 @@
        ]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #client_state{}}.
@@ -123,7 +122,7 @@ from_json(Req, #base_state{resource_state =
         keygen_timeout ->
             {{halt, 503}, Req, State#base_state{log_msg = keygen_timeout}};
         ClientData1 ->
-            chef_wm_base:update_from_json(Req, State, Client, ClientData1)
+            oc_chef_wm_base:update_from_json(Req, State, Client, ClientData1)
     end.
 
 to_json(Req, #base_state{resource_state =
@@ -138,7 +137,7 @@ delete_resource(Req, #base_state{chef_db_context = DbContext,
                                  resource_state = #client_state{
                                    chef_client = Client},
                                  organization_name = OrgName} = State) ->
-    ok = ?BASE_RESOURCE:delete_object(DbContext, Client, RequestorId),
+    ok = oc_chef_wm_base:delete_object(DbContext, Client, RequestorId),
     EJson = chef_client:assemble_client_ejson(Client, OrgName),
     Req1 = chef_wm_util:set_json_body(Req, EJson),
     {true, Req1, State}.

@@ -55,7 +55,7 @@
          resource_exists/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #role_state{}}.
@@ -94,7 +94,7 @@ create_path(Req, #base_state{resource_state = #role_state{role_data = RoleData}}
 from_json(Req, #base_state{resource_state =
                                #role_state{role_data = RoleData,
                                            role_authz_id = AuthzId}} = State) ->
-    chef_wm_base:create_from_json(Req, State, chef_role, {authz_id, AuthzId}, RoleData).
+    oc_chef_wm_base:create_from_json(Req, State, chef_role, {authz_id, AuthzId}, RoleData).
 
 malformed_request_message(Any, _Req, _State) ->
     error({unexpected_malformed_request_message, Any}).

@@ -51,7 +51,7 @@
          to_json/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #node_state{}}.
@@ -93,7 +93,7 @@ to_json(Req, #base_state{resource_state = NodeState} = State) ->
 
 from_json(Req, #base_state{resource_state = #node_state{chef_node = Node,
                                                         node_data = NodeData}} = State) ->
-    chef_wm_base:update_from_json(Req, State, Node, NodeData).
+    oc_chef_wm_base:update_from_json(Req, State, Node, NodeData).
 
 delete_resource(Req, #base_state{chef_db_context = DbContext,
                                  requestor_id = RequestorId,

@@ -51,7 +51,7 @@
          to_json/2]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #group_state{}}.
@@ -129,7 +129,7 @@ from_json(Req, #base_state{resource_state = #group_state{
                                                group_data = GroupData
                                               }
                           } = State) ->
-    chef_wm_base:update_from_json(Req, State, Group , GroupData).
+    oc_chef_wm_base:update_from_json(Req, State, Group , GroupData).
 
 conflict_message(_Name) ->
     {[{<<"error">>, <<"Group already exists">>}]}.

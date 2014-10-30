@@ -47,7 +47,7 @@
          process_post/2]).
 
 init(Config) ->
-  chef_wm_base:init(?MODULE, Config).
+  oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
   {ok, #user_state{}}.

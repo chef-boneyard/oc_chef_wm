@@ -47,11 +47,10 @@
                         finish_request/2,
                         malformed_request/2,
                         ping/2,
-                        post_is_create/2]}]).
-
--mixin([{oc_chef_wm_base, [forbidden/2,
-                           is_authorized/2,
-                           service_available/2]}]).
+                        post_is_create/2,
+                        forbidden/2,
+                        is_authorized/2,
+                        service_available/2]}]).
 
 -behaviour(chef_wm).
 
@@ -76,7 +75,7 @@
        ]).
 
 init(Config) ->
-    chef_wm_base:init(?MODULE, Config).
+    oc_chef_wm_base:init(?MODULE, Config).
 
 init_resource_state(_Config) ->
     {ok, #data_state{}}.
@@ -138,7 +137,7 @@ from_json(Req, #base_state{
                            resource_state = #data_state{data_bag_name = DataBagName,
                                                         data_bag_item_ejson = ItemData}
                           } = State) ->
-    case chef_wm_base:create_from_json(Req, State, chef_data_bag_item, {authz_id,undefined}, {DataBagName, ItemData}) of
+    case oc_chef_wm_base:create_from_json(Req, State, chef_data_bag_item, {authz_id,undefined}, {DataBagName, ItemData}) of
         {true, _, NewState} ->
             %% The Ruby API returns created items as-is, but with added chef_type and
             %% data_bag fields. If those fields are present in the request, they are put
