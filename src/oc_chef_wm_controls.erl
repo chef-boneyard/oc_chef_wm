@@ -134,6 +134,8 @@ construct_payload(FullControlGroupPayload,
             {<<"node_name">>, ej:get({<<"node_name">>}, FullControlGroupPayload)},
             {<<"id">>, Id},
             {<<"run_id">>, ej:get({<<"run_id">>}, FullControlGroupPayload)},
+            {<<"start_time">>, ej:get({<<"start_time">>}, FullControlGroupPayload)},
+            {<<"end_time">>, ej:get({<<"end_time">>}, FullControlGroupPayload)},
             {<<"control_groups">>, ej:get({<<"control_groups">>}, FullControlGroupPayload)}
            ]},
     Msg1 = maybe_add_remote_request_id(Msg, req_header("x-remote-request-id", Req)),
