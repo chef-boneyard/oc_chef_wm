@@ -1,4 +1,8 @@
-oc_chef_wm
+# Deprecated
+
+**This code has been consolidated into [oc_erchef](https://github.com/opscode/oc_erchef) as an app (look in the apps folder). New development should occur there.**
+
+# oc_chef_wm
 
 ## License
 
